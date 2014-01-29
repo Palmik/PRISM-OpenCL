@@ -193,12 +193,21 @@ jdouble time		// time bound
   cl_error_check(err, "clCreateCommandQueue");
  
   // we need the matrix to use starts
-  assert(!cmsm->use_counts); 
+  cl_uint* column_offset = cmsm->col_counts;
+  if (cmsm->use_counts)
+  {
+    column_offset = new cl_uint[cmsm->n + 1];
+    column_offset[0] = 0;
+    for (size_t ii = 1; ii <= cmsm->n; ++ii)
+    {
+      column_offset[ii] = column_offset[ii - 1] + cmsm->col_counts[ii - 1];
+    }
+  }
   vector_matrix_multiplication_msc matrix_multiplication
     ( device_id, context
     , (float*)cmsm->non_zeros
     , (cl_uint*)cmsm->rows
-    , (cl_uint*)cmsm->col_counts
+    , column_offset
     , (cl_uint)cmsm->nnz
     , (cl_uint)cmsm->n
     );
@@ -342,6 +351,7 @@ jdouble time		// time bound
   if (init) delete[] init;
 	if (soln) delete[] soln;
 	if (soln2) delete[] soln2;
+  if (cmsm->use_counts) delete[] column_offset;
 	
 	return ptr_to_jlong(sum);
 }
