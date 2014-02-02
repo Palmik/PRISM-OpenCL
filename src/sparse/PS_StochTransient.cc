@@ -35,7 +35,7 @@
 #include <dv.h>
 #include <prism.h>
 #include <CL/cl.h>
-#include "vector_matrix_multiplication_msc.h"
+#include "PS_StochTransientKernel.h"
 #include "sparse.h"
 #include "PrismSparseGlob.h"
 #include "jnipointer.h"
@@ -168,14 +168,13 @@ jdouble time		// time bound
 	done = false;
 	num_iters = -1;
 	PS_PrintToMainLog(env, "\nStarting iterations...\n");
-	PS_PrintToMainLog(env, "\nHELLO PALMIK...\n");
 	
 	// if necessary, do 0th element of summation (doesn't require any matrix powers)
 	if (fgw.left == 0) for (i = 0; i < n; i++) {
 		sum[i] += fgw.weights[0] * soln[i];
 	}
 
-  // Set up OpenCL
+  // Set up OpenCL (platform, device, context)
   cl_int err = 0;
 
   cl_platform_id platform_id;
@@ -192,25 +191,28 @@ jdouble time		// time bound
   device_command_queue = clCreateCommandQueue(context, device_id, 0, &err);
   cl_error_check(err, "clCreateCommandQueue");
  
-  // we need the matrix to use starts
-  cl_uint* column_offset = cmsm->col_counts;
+  // Prepare the input data for the kernel.
+  cl_uint* msc_column_offset = (cl_uint*)cmsm->col_counts;
   if (cmsm->use_counts)
   {
-    column_offset = new cl_uint[cmsm->n + 1];
-    column_offset[0] = 0;
+    msc_column_offset = new cl_uint[cmsm->n + 1];
+    msc_column_offset[0] = 0;
     for (size_t ii = 1; ii <= cmsm->n; ++ii)
     {
-      column_offset[ii] = column_offset[ii - 1] + cmsm->col_counts[ii - 1];
+      msc_column_offset[ii] = msc_column_offset[ii - 1] + cmsm->col_counts[ii - 1];
     }
   }
-  vector_matrix_multiplication_msc matrix_multiplication
+  PS_StochTransientKernel kernel
     ( device_id, context
+
     , (float*)cmsm->non_zeros
     , (cl_uint*)cmsm->rows
-    , column_offset
+    , msc_column_offset
     , (cl_uint)cmsm->nnz
     , (cl_uint)cmsm->n
     );
+  PS_PrintToMainLog(env, "\ns1: "); for (size_t ii = 0; ii < n; ++ii) { PS_PrintToMainLog(env, "%f20 ", soln[ii]); }
+  PS_PrintToMainLog(env, "\n");
 
 	// note that we ignore max_iters as we know how any iterations _should_ be performed
 	for (iters = 1; (iters <= fgw.right) && !done; iters++) {
@@ -244,7 +246,7 @@ jdouble time		// time bound
 		
 		// do matrix vector multiply bit
 		h = 0;
-    matrix_multiplication.run(device_command_queue, soln, soln2);
+    kernel.run(device_command_queue, soln, soln2);
     for (size_t ii = 0; ii < cmsm->n; ++ii)
     {
       soln2[ii] += diags[ii] * soln[ii];
@@ -321,6 +323,7 @@ jdouble time		// time bound
 			for (i = 0; i < n; i++) sum[i] += fgw.weights[iters-fgw.left] * soln[i];
 		}
 	}
+  if (cmsm->use_counts) delete[] msc_column_offset;
 	
 	// stop clocks
 	stop = util_cpu_time();
@@ -351,7 +354,6 @@ jdouble time		// time bound
   if (init) delete[] init;
 	if (soln) delete[] soln;
 	if (soln2) delete[] soln2;
-  if (cmsm->use_counts) delete[] column_offset;
 	
 	return ptr_to_jlong(sum);
 }
