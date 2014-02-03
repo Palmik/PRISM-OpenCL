@@ -1,23 +1,28 @@
+#pragma OPENCL EXTENSION cl_khr_fp64 : enable
+
 __kernel void PS_StochTransientKernel
   ( __global double const* msc_non_zero
   , __global uint const* msc_non_zero_row
   , __global uint const* msc_column_offset
-  , const uint msc_column_count
-  , __global double* vec_out
-  , __global double const* vec_in
+  , const uint msc_dim
+
+  , __global double const* fgw_d
+
+  , __global double* v1
+  , __global double const* v0
   )
 {
 	int col = get_global_id(0);
-	if (col < msc_column_count)
+	if (col < msc_dim)
 	{
     uint cb = msc_column_offset[col];
     uint ce = msc_column_offset[col + 1];
 
-    double dot_product = 0;
+    double dot_product = fgw_d[col] * v0[col];
 		for (uint i = cb; i < ce; ++i)
     {
-      dot_product += msc_non_zero[i] * vec_in[msc_non_zero_row[i]];
+      dot_product += msc_non_zero[i] * v0[msc_non_zero_row[i]];
     }
-    vec_out[col] = dot_product;
+    v1[col] = dot_product;
 	}
 }

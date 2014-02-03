@@ -3,8 +3,7 @@
 //	Copyright (c) 2002-
 //	Authors:
 //	* Dave Parker <david.parker@comlab.ox.ac.uk> (University of Oxford, formerly University of Birmingham)
-//
-//
+//	
 //------------------------------------------------------------------------------
 //	
 //	This file is part of PRISM.
@@ -40,7 +39,6 @@
 #include "PrismSparseGlob.h"
 #include "jnipointer.h"
 #include <new>
-
 //------------------------------------------------------------------------------
 
 JNIEXPORT jlong __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1StochTransient
@@ -67,13 +65,13 @@ jdouble time		// time bound
 	// model stats
 	int n;
 	long nnz;
+	// flags
 	// sparse matrix
 	CMSparseMatrix *cmsm = NULL;
 	CMSCSparseMatrix *cmscsm = NULL;
 	// vectors
-	double *diags = NULL, *sum = NULL;
-  float *soln = NULL, *soln2 = NULL, *tmpsoln = NULL;
-  DistVector *diags_dist = NULL;
+	double *diags = NULL, *soln = NULL, *soln2 = NULL, *tmpsoln = NULL, *sum = NULL;
+	DistVector *diags_dist = NULL;
 	// fox glynn stuff
 	FoxGlynnWeights fgw;
 	// timing stuff
@@ -96,15 +94,13 @@ jdouble time		// time bound
 	
 	// build sparse matrix
 	PS_PrintToMainLog(env, "\nBuilding sparse matrix... ");
-	
-  // Build MSC matrix.
-  cmsm = build_cm_sparse_matrix(ddman, trans, rvars, cvars, num_rvars, odd);
+
+	cmsm = build_cm_sparse_matrix(ddman, trans, rvars, cvars, num_rvars, odd);
 	nnz = cmsm->nnz;
 	kb = cmsm->mem;
-	
-  kbt = kb;
+	kbt = kb;
 	// print some info
-	PS_PrintToMainLog(env, "[n=%d, nnz=%d%s] ", n, nnz, "");
+	PS_PrintToMainLog(env, "[n=%d, nnz=%d] ", n, nnz);
 	PS_PrintMemoryToMainLog(env, "[", kb, "]\n");
 	
 	// get vector of diagonals
@@ -126,13 +122,14 @@ jdouble time		// time bound
 	for (i = 0; i < n; i++) diags[i] = diags[i] / unif + 1;
 	
 	// uniformization
-	for (i = 0; i < nnz; i++) cmsm->non_zeros[i] /= unif;
+  for (i = 0; i < nnz; i++) cmsm->non_zeros[i] /= unif;
 	
 	// create solution/iteration vectors
 	PS_PrintToMainLog(env, "Allocating iteration vectors... ");
-	// we report the memory usage of this vector here, even though it has already been created
-	soln = new float[n]; for (size_t ii = 0; i < n; ++ii) { soln[ii] = init[ii]; }
-	soln2 = new float[n];
+	// for soln, we just use init (since we are free to modify/delete this vector)
+	// we also report the memory usage of this vector here, even though it has already been created
+	soln = init;
+	soln2 = new double[n];
 	sum = new double[n];
 	kb = n*8.0/1024.0;
 	kbt += 3*kb;
@@ -173,7 +170,7 @@ jdouble time		// time bound
 	if (fgw.left == 0) for (i = 0; i < n; i++) {
 		sum[i] += fgw.weights[0] * soln[i];
 	}
-
+	
   // Set up OpenCL (platform, device, context)
   cl_int err = 0;
 
@@ -191,87 +188,41 @@ jdouble time		// time bound
   device_command_queue = clCreateCommandQueue(context, device_id, 0, &err);
   cl_error_check(err, "clCreateCommandQueue");
  
-  // Prepare the input data for the kernel.
-  cl_uint* msc_column_offset = (cl_uint*)cmsm->col_counts;
+  // Prepare the matrix and other data for the kernel.
+  cl_uint* msc_column_offset = new cl_uint[cmsm->n + 1];
   if (cmsm->use_counts)
   {
-    msc_column_offset = new cl_uint[cmsm->n + 1];
     msc_column_offset[0] = 0;
     for (size_t ii = 1; ii <= cmsm->n; ++ii)
     {
       msc_column_offset[ii] = msc_column_offset[ii - 1] + cmsm->col_counts[ii - 1];
     }
   }
+  else
+  {
+    for (size_t ii = 0; ii <= cmsm->n; ++ii)
+    {
+      msc_column_offset[ii] = cmsm->col_counts[ii];
+    }
+  }
   PS_StochTransientKernel kernel
     ( device_id, context
 
-    , (float*)cmsm->non_zeros
+    , cmsm->non_zeros
     , (cl_uint*)cmsm->rows
     , msc_column_offset
     , (cl_uint)cmsm->nnz
-    , (cl_uint)cmsm->n
+    , (cl_uint)n
+    
+    , diags
+    //, fgw.weights
+    //, fgw.left
     );
-  PS_PrintToMainLog(env, "\ns1: "); for (size_t ii = 0; ii < n; ++ii) { PS_PrintToMainLog(env, "%f20 ", soln[ii]); }
-  PS_PrintToMainLog(env, "\n");
 
-	// note that we ignore max_iters as we know how any iterations _should_ be performed
-	for (iters = 1; (iters <= fgw.right) && !done; iters++) {
-	
-    /* Why would they do this for every iteration when it does not change?  
-		// store local copies of stuff
-		double *non_zeros;
-		unsigned char *col_counts;
-		int *col_starts;
-		bool use_counts;
-		unsigned int *rows;
-		double *dist;
-		int dist_shift;
-		int dist_mask;
-		if (!compact_tr) {
-			non_zeros = cmsm->non_zeros;
-			col_counts = cmsm->col_counts;
-			col_starts = (int *)cmsm->col_counts;
-			use_counts = cmsm->use_counts;
-			rows = cmsm->rows;
-		} else {
-			col_counts = cmscsm->col_counts;
-			col_starts = (int *)cmscsm->col_counts;
-			use_counts = cmscsm->use_counts;
-			rows = cmscsm->rows;
-			dist = cmscsm->dist;
-			dist_shift = cmscsm->dist_shift;
-			dist_mask = cmscsm->dist_mask;
-		}
-    */
-		
-		// do matrix vector multiply bit
-		h = 0;
+	for (iters = 1; (iters <= fgw.right) && !done; iters++)
+  {
     kernel.run(device_command_queue, soln, soln2);
-    for (size_t ii = 0; ii < cmsm->n; ++ii)
-    {
-      soln2[ii] += diags[ii] * soln[ii];
-    }
 
-		/*
-    for (i = 0; i < n; i++) {
-			d = (!compact_d) ? (diags[i] * soln[i]) : (diags_dist->dist[diags_dist->ptrs[i]] * soln[i]);
-			if (!use_counts) { l = col_starts[i]; h = col_starts[i+1]; }
-			else { l = h; h += col_counts[i]; }
-			// "column major" version
-			if (!compact_tr) {
-				for (j = l; j < h; j++) {
-					d += non_zeros[j] * soln[rows[j]];
-				}
-			// "compact msc" version
-			} else {
-				for (j = l; j < h; j++) {
-					d += dist[(int)(rows[j] & dist_mask)] * soln[(int)(rows[j] >> dist_shift)];
-				}
-			}
-			// set vector element
-			soln2[i] = d;
-		}
-    */
 		// check for steady state convergence
 		if (do_ss_detect) {
 			sup_norm = 0.0;
@@ -323,7 +274,7 @@ jdouble time		// time bound
 			for (i = 0; i < n; i++) sum[i] += fgw.weights[iters-fgw.left] * soln[i];
 		}
 	}
-  if (cmsm->use_counts) delete[] msc_column_offset;
+  delete[] msc_column_offset;
 	
 	// stop clocks
 	stop = util_cpu_time();
@@ -350,8 +301,7 @@ jdouble time		// time bound
 	if (cmsm) delete cmsm;
 	if (diags) delete[] diags;
 	if (diags_dist) delete diags_dist;
-  // we do free init
-  if (init) delete[] init;
+	// nb: we *do* free soln (which was originally init)
 	if (soln) delete[] soln;
 	if (soln2) delete[] soln2;
 	
