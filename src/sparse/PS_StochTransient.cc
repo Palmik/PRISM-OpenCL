@@ -215,13 +215,16 @@ jdouble time    // time bound
     , (cl_uint)n
     
     , diags
-    //, fgw.weights
-    //, fgw.left
+    , fgw.weights
+    , fgw.left
     );
 
-  for (iters = 1; (iters <= fgw.right) && !done; iters++)
+  size_t iters_max_step = fgw.right / 2;
+  for (iters = 0; (iters < fgw.right) && !done;)
   {
-    kernel.run(device_command_queue, soln, soln2);
+    size_t iters_step = (iters + iters_max_step < fgw.right) ? iters_max_step : fgw.right - iters;
+    kernel.run(device_command_queue, soln, soln2, iters_step);
+    iters += iters_step;
 
     // check for steady state convergence
     if (do_ss_detect) {
@@ -240,6 +243,7 @@ jdouble time    // time bound
     
     // special case when finished early (steady-state detected)
     if (done) {
+      kernel.sum(device_command_queue, sum);
       // work out sum of remaining poisson probabilities
       if (iters <= fgw.left) {
         weight = 1.0;
@@ -269,13 +273,10 @@ jdouble time    // time bound
     soln = soln2;
     soln2 = tmpsoln;
     
-    // add to sum
-    if (iters >= fgw.left) {
-      for (i = 0; i < n; i++) sum[i] += fgw.weights[iters-fgw.left] * soln[i];
-    }
   }
+  kernel.sum(device_command_queue, sum);
   delete[] msc_column_offset;
-  
+
   // stop clocks
   stop = util_cpu_time();
   time_for_iters = (double)(stop - start2)/1000;

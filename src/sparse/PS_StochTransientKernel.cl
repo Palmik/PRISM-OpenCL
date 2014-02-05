@@ -7,9 +7,11 @@ __kernel void PS_StochTransientKernel
   , const uint msc_dim
 
   , __global double const* fgw_d
+  , __global double const* fgw_w
+  , __global double* sum
 
-  , __global double* v1
   , __global double const* v0
+  , __global double* v1
   )
 {
 	int col = get_global_id(0);
@@ -24,5 +26,7 @@ __kernel void PS_StochTransientKernel
       dot_product += msc_non_zero[i] * v0[msc_non_zero_row[i]];
     }
     v1[col] = dot_product;
+
+    sum[col] += fgw_w[0] * dot_product;
 	}
 }
