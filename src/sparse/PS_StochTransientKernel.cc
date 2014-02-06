@@ -7,7 +7,10 @@
 #include <memory>
 #include <iostream>
 
-#include <CL/cl.h>
+#include <vector>
+#include <CL/cl.hpp>
+
+#define __CL_ENABLE_EXCEPTIONS
 
 unsigned long int least_greater_multiple(unsigned long int a, unsigned long int min)
 {
@@ -16,64 +19,48 @@ unsigned long int least_greater_multiple(unsigned long int a, unsigned long int 
   return r;
 }
 
+char const* PS_StochTransientKernel::cl_kernel_source = 
+"#pragma OPENCL EXTENSION cl_khr_fp64 : enable\r\n\r\n__kernel void PS_StochTransientKernel\r\n  ( __global double const* msc_non_zero\r\n  , __global uint const* msc_non_zero_row\r\n  , __global uint const* msc_column_offset\r\n  , const uint msc_dim\r\n\r\n  , __global double const* fgw_d\r\n  , __global double const* fgw_w\r\n  , __global double* sum\r\n\r\n  , __global double const* v0\r\n  , __global double* v1\r\n  )\r\n{\r\n\tint col = get_global_id(0);\r\n\tif (col < msc_dim)\r\n\t{\r\n    uint cb = msc_column_offset[col];\r\n    uint ce = msc_column_offset[col + 1];\r\n\r\n    double dot_product = fgw_d[col] * v0[col];\r\n\t\tfor (uint i = cb; i < ce; ++i)\r\n    {\r\n      dot_product += msc_non_zero[i] * v0[msc_non_zero_row[i]];\r\n    }\r\n    v1[col] = dot_product;\r\n\r\n    sum[col] += fgw_w[0] * dot_product;\r\n\t}\r\n}\r\n";
+
 PS_StochTransientKernel::PS_StochTransientKernel
-  ( cl_device_id device_id, cl_context context
+  ( cl::Device& cl_device
+  , cl::Context& cl_context
+
   , cl_double* msc_non_zero
   , cl_uint* msc_non_zero_row
   , cl_uint* msc_col_offset
   , cl_uint msc_non_zero_size
   , cl_uint msc_dim
 
-  , cl_double* fgw_ds
-  , cl_double* fgw_ws
+  , cl_double* fgw_d
+  , cl_double* fgw_w
   , cl_uint fgw_l
   )
-  : device_id_m(device_id)
-  , context_m(context)
-  , zero_m(0.0)
-  , fgw_ws_m(fgw_ws)
+  : cl_device_m(cl_device)
+  , cl_context_m(cl_context)
+  , cl_queue_m(cl_device(), cl_context(), NULL)
+  , cl_program_m(cl_context(), cl::Sources(1, std::make_pair<PS_StochTransientKernel::cl_kernel_source, 0>))
+  , cl_kernel_m(cl_program(), "PS_StochTransientKernel")
+
+  , msc_dim_m(msc_cim)
+  , msc_non_zero_size(msc_non_zero_size)
+  , fgw_w_m(fgw_w)
   , fgw_l_m(fgw_l)
-  , fgw_iteration_m(1)
-  , dim_m(msc_dim)
+  , fgw_i_m(1)
+  , zero_m(0.0)
+
+  , cl_v0_m(cl_context(), CL_MEM_READ_WRITE, msc_dim_m * sizeof(cl_double))
+  , cl_v1_m(cl_context(), CL_MEM_READ_WRITE, msc_dim_m * sizeof(cl_double))
+  , cl_msc_non_zero_m(cl_context(), CL_MEM_READ_ONLY, msc_non_zero_size * sizeof(cl_double), msc_non_zero)
+  , cl_msc_non_zero_row_m(cl_context(), CL_MEM_READ_ONLY, msc_non_zero_size * sizeof(cl_uint, msc_non_zero_row))
+  , cl_msc_col_offset_m(cl_context(), CL_MEM_READ_ONLY, (msc_dim + 1) * sizeof(cl_uint), msc_col_offset)
+  , cl_fgw_d_m(cl_context(), CL_MEM_READ_ONLY, msc_dim_m * sizeof(cl_double), fgw_d)
+  , cl_fgw_w_m(cl_context(), CL_MEM_READ_ONLY, 1 * sizeof(cl_double))
+  , cl_sum_m(cl_context(), CL_MEM_READ_WRITE, msc_dim_m * sizeof(cl_double));
 {
-  cl_int err = 0;
 
-  char const* source = 
-"#pragma OPENCL EXTENSION cl_khr_fp64 : enable\r\n\r\n__kernel void PS_StochTransientKernel\r\n  ( __global double const* msc_non_zero\r\n  , __global uint const* msc_non_zero_row\r\n  , __global uint const* msc_column_offset\r\n  , const uint msc_dim\r\n\r\n  , __global double const* fgw_d\r\n  , __global double const* fgw_w\r\n  , __global double* sum\r\n\r\n  , __global double const* v0\r\n  , __global double* v1\r\n  )\r\n{\r\n\tint col = get_global_id(0);\r\n\tif (col < msc_dim)\r\n\t{\r\n    uint cb = msc_column_offset[col];\r\n    uint ce = msc_column_offset[col + 1];\r\n\r\n    double dot_product = fgw_d[col] * v0[col];\r\n\t\tfor (uint i = cb; i < ce; ++i)\r\n    {\r\n      dot_product += msc_non_zero[i] * v0[msc_non_zero_row[i]];\r\n    }\r\n    v1[col] = dot_product;\r\n\r\n    sum[col] += fgw_w[0] * dot_product;\r\n\t}\r\n}\r\n";
-
-  program_m = clCreateProgramWithSource(context, 1, &source, NULL, &err);
-  cl_error_check(err, "clCreateProgramWithSource");
-  err = clBuildProgram(program_m, 1, &device_id, NULL, NULL, NULL);
-  if (err == CL_BUILD_PROGRAM_FAILURE)
-  {
-    size_t log_size;
-    clGetProgramBuildInfo(program_m, device_id, CL_PROGRAM_BUILD_LOG, 0, NULL, &log_size);
-    char *log = (char*) malloc(log_size);
-    clGetProgramBuildInfo(program_m, device_id, CL_PROGRAM_BUILD_LOG, log_size, log, NULL);
-    std::printf("%s\n", log);
-    free(log);
-  }
-  else
-  {
-    cl_error_check(err, "clBuildProgram");
-  }
-
-  kernel_m = clCreateKernel(program_m, "PS_StochTransientKernel", &err);
-  cl_error_check(err, "clCreateKernel");
- 
-  cl_command_queue queue = clCreateCommandQueue(context_m, device_id_m, 0, &err);
-  cl_error_check(err, "clCreateCommandQueue");
-
-  vec_out_cl_m = cl_create_buffer(queue, CL_MEM_WRITE_ONLY, dim_m * sizeof(cl_double)); 
-  
-  non_zero_cl_m = cl_create_buffer(queue, CL_MEM_READ_ONLY, msc_non_zero_size * sizeof(cl_double), msc_non_zero);
-  non_zero_row_cl_m = cl_create_buffer(queue, CL_MEM_READ_ONLY, msc_non_zero_size * sizeof(cl_uint), msc_non_zero_row);
-  column_offset_cl_m = cl_create_buffer(queue, CL_MEM_READ_ONLY, (dim_m + 1) * sizeof(cl_uint), msc_col_offset);
-  fgw_ds_cl_m = cl_create_buffer(queue, CL_MEM_READ_ONLY, dim_m * sizeof(cl_double), fgw_ds);
-  fgw_w_cl_m = cl_create_buffer(queue, CL_MEM_READ_ONLY, sizeof(cl_double));
-  sum_cl_m = cl_create_buffer_with_pattern(queue, CL_MEM_READ_ONLY, dim_m * sizeof(cl_double), sizeof(cl_double), &zero_m); 
-
-  clFinish(queue);
+  cl_queue()::enqueueFillBuffer(cl_sum_m, static_cast<cl_double>(0.0), msc_dim_m * sizeof(cl_double));
+  cl_queue().finish();
   
   err = clSetKernelArg(kernel_m, 0, sizeof(cl_mem), &non_zero_cl_m);
   cl_error_check(err, "clSetKernelArg(non_zero)");
@@ -136,26 +123,6 @@ cl_mem PS_StochTransientKernel::cl_create_buffer_with_pattern
 
 PS_StochTransientKernel::~PS_StochTransientKernel()
 {
-  cl_uint err = 0;
- 
-  err = clReleaseKernel(kernel_m);
-  cl_error_check(err, "clReleaseKernel");
-
-  err = clReleaseMemObject(fgw_ds_cl_m);
-  cl_error_check(err, "clReleaseMemObject(fgw_ds)");
-
-  err = clReleaseMemObject(column_offset_cl_m);
-  cl_error_check(err, "clReleaseMemObject(column_offset)");
-
-  err = clReleaseMemObject(non_zero_row_cl_m);
-  cl_error_check(err, "clReleaseMemObject(non_zero_row)");
-
-  err = clReleaseMemObject(non_zero_cl_m);
-  cl_error_check(err, "clReleaseMemObject(non_zero)");
-
-  err = clReleaseMemObject(vec_out_cl_m);
-  cl_error_check(err, "clReleaseMemObject(vec_out_cl_m)");
-
 }
 
 void PS_StochTransientKernel::run
