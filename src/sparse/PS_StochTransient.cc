@@ -27,18 +27,18 @@
 // includes
 #include "PrismSparse.h"
 #include <math.h>
+#include <prism.h>
+#include "PS_StochTransientKernel.h"
+#include "sparse.h"
+#include "PrismSparseGlob.h"
+#include "jnipointer.h"
+#include <iostream>
+#include <new>
 #include <util.h>
 #include <cudd.h>
 #include <dd.h>
 #include <odd.h>
 #include <dv.h>
-#include <prism.h>
-#include <CL/cl.h>
-#include "PS_StochTransientKernel.h"
-#include "sparse.h"
-#include "PrismSparseGlob.h"
-#include "jnipointer.h"
-#include <new>
 //------------------------------------------------------------------------------
 
 JNIEXPORT jlong __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1StochTransient
@@ -172,22 +172,13 @@ jdouble time    // time bound
   }
   
   // Set up OpenCL (platform, device, context)
-  cl_int err = 0;
+  std::vector<cl::Platform> cl_platforms;
+  cl::Platform::get(&cl_platforms);
+  std::vector<cl::Device> cl_devices;
+  cl_platforms[0].getDevices(CL_DEVICE_TYPE_GPU, &cl_devices);
+  cl::Context cl_context(cl_devices);
 
-  cl_platform_id platform_id;
-  cl_device_id device_id;
-  cl_command_queue device_command_queue;
-  cl_context context;
 
-  cl_error_check(clGetPlatformIDs(1, &platform_id, NULL), "clGetPlatformIDs");
-  cl_error_check(clGetDeviceIDs(platform_id, CL_DEVICE_TYPE_GPU, 1, &device_id, NULL), "clGetDeviceIDs");
-
-  context = clCreateContext(0, 1, &device_id, NULL, NULL, &err);
-  cl_error_check(err, "clCreateContext");
-
-  device_command_queue = clCreateCommandQueue(context, device_id, 0, &err);
-  cl_error_check(err, "clCreateCommandQueue");
- 
   // Prepare the matrix and other data for the kernel.
   cl_uint* msc_column_offset = new cl_uint[cmsm->n + 1];
   if (cmsm->use_counts)
@@ -206,7 +197,7 @@ jdouble time    // time bound
     }
   }
   PS_StochTransientKernel kernel
-    ( device_id, context
+    ( cl_devices[0], cl_context
 
     , cmsm->non_zeros
     , (cl_uint*)cmsm->rows
@@ -223,7 +214,7 @@ jdouble time    // time bound
   for (iters = 0; (iters < fgw.right) && !done;)
   {
     size_t iters_step = (iters + iters_max_step < fgw.right) ? iters_max_step : fgw.right - iters;
-    kernel.run(device_command_queue, soln, soln2, iters_step);
+    kernel.run(soln, soln2, iters_step);
     iters += iters_step;
 
     // check for steady state convergence
@@ -243,7 +234,7 @@ jdouble time    // time bound
     
     // special case when finished early (steady-state detected)
     if (done) {
-      kernel.sum(device_command_queue, sum);
+      kernel.sum(sum);
       // work out sum of remaining poisson probabilities
       if (iters <= fgw.left) {
         weight = 1.0;
@@ -274,7 +265,7 @@ jdouble time    // time bound
     soln2 = tmpsoln;
     
   }
-  kernel.sum(device_command_queue, sum);
+  kernel.sum(sum);
   delete[] msc_column_offset;
 
   // stop clocks

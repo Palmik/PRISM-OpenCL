@@ -20,9 +20,8 @@ class PS_StochTransientKernel
       , cl_double* fgw_ws
       , cl_uint fgw_l
       );
-    ~PS_StochTransientKernel();
 
-    void run(cl_double* vec_in, cl_double* vec_out, cl_uint times = 1);
+    void run(cl_double* vec_i, cl_double* vec_o, cl_uint times = 1);
     void sum(cl_double* x);
 
   private:
@@ -31,18 +30,19 @@ class PS_StochTransientKernel
     cl::Device& cl_device() { return cl_device_m; }
     cl::Context& cl_context() { return cl_context_m; }
     cl::CommandQueue& cl_queue() { return cl_queue_m; }
-    cl::Program& cl_program() { return cl_program; }
-    cl::Program::Kernel& cl_kernel() { return cl_kernel; }
+    cl::Program& cl_program() { return cl_program_m; }
+    cl::Kernel& cl_kernel() { return cl_kernel_m; }
+
+    cl_double fgw_w() { return ((fgw_i_m < fgw_l_m) ? 0.0 : fgw_w_m[fgw_i_m - fgw_l_m]); }
 
     cl::Device& cl_device_m;
     cl::Context& cl_context_m;
     cl::CommandQueue cl_queue_m;
     cl::Program cl_program_m;
-    cl::Program::Kernel cl_kernel_m;
+    cl::Kernel cl_kernel_m;
 
     cl_uint msc_dim_m;
     cl_uint msc_non_zero_size_m;
-    cl_double zero_m;
     
     cl_double* fgw_w_m; // The FGW weights.
     cl_uint fgw_l_m; // The FGW "left" parameter.
@@ -55,7 +55,6 @@ class PS_StochTransientKernel
     cl::Buffer cl_msc_col_offset_m;
 
     cl::Buffer cl_fgw_d_m;
-    cl::Buffer cl_fgw_w_m;
     cl::Buffer cl_sum_m;
 
 };
