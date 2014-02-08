@@ -178,7 +178,6 @@ jdouble time    // time bound
   cl_platforms[0].getDevices(CL_DEVICE_TYPE_GPU, &cl_devices);
   cl::Context cl_context(cl_devices);
 
-
   // Prepare the matrix and other data for the kernel.
   cl_uint* msc_column_offset = new cl_uint[cmsm->n + 1];
   if (cmsm->use_counts)
@@ -286,7 +285,12 @@ jdouble time    // time bound
     PS_SetErrorMessage(err);
     if (sum) delete sum;
     sum = 0;
+  } catch (cl::Error const& ex) {
+    std::cout << "OpenCL exception: " << ex.what() << std::endl;
+    PS_SetErrorMessage("OpenCL exception: ");
+    PS_SetErrorMessage(ex.what());
   }
+
   
   // free memory
   if (cmscsm) delete cmscsm;

@@ -1,6 +1,7 @@
 #ifndef PRISM_PS_STOCH_TRANSIENT_KERNEL
 #define PRISM_PS_STOCH_TRANSIENT_KERNEL
 
+#define __CL_ENABLE_EXCEPTIONS
 #include <CL/cl.hpp>
 
 class PS_StochTransientKernel

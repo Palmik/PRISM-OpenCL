@@ -48,10 +48,10 @@ PS_StochTransientKernel::PS_StochTransientKernel
 
   , cl_v0_m(cl_context(), CL_MEM_READ_WRITE, msc_dim_m * sizeof(cl_double))
   , cl_v1_m(cl_context(), CL_MEM_READ_WRITE, msc_dim_m * sizeof(cl_double))
-  , cl_msc_non_zero_m(cl_context(), CL_MEM_READ_ONLY, msc_non_zero_size * sizeof(cl_double), msc_non_zero)
-  , cl_msc_non_zero_row_m(cl_context(), CL_MEM_READ_ONLY, msc_non_zero_size * sizeof(cl_uint), msc_non_zero_row)
-  , cl_msc_col_offset_m(cl_context(), CL_MEM_READ_ONLY, (msc_dim + 1) * sizeof(cl_uint), msc_col_offset)
-  , cl_fgw_d_m(cl_context(), CL_MEM_READ_ONLY, msc_dim_m * sizeof(cl_double), fgw_d)
+  , cl_msc_non_zero_m(cl_context(), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, msc_non_zero_size * sizeof(cl_double), msc_non_zero)
+  , cl_msc_non_zero_row_m(cl_context(), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, msc_non_zero_size * sizeof(cl_uint), msc_non_zero_row)
+  , cl_msc_col_offset_m(cl_context(), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, (msc_dim + 1) * sizeof(cl_uint), msc_col_offset)
+  , cl_fgw_d_m(cl_context(), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, msc_dim_m * sizeof(cl_double), fgw_d)
   , cl_sum_m(cl_context(), CL_MEM_READ_WRITE, msc_dim_m * sizeof(cl_double))
 {
   cl_queue().enqueueFillBuffer(cl_sum_m, static_cast<cl_double>(0.0), 0, msc_dim_m * sizeof(cl_double));
@@ -75,11 +75,11 @@ void PS_StochTransientKernel::run
 {
   size_t lws = 128;
   size_t gws = least_greater_multiple(lws, msc_dim_m);
-  
+ 
   cl_queue().enqueueWriteBuffer(cl_v0_m, CL_TRUE, 0, msc_dim_m * sizeof(cl_double), vec_i);
 
-  cl::Buffer* v0 = &cl_v0_m;
-  cl::Buffer* v1 = &cl_v1_m;
+  cl::Buffer& v0 = cl_v0_m;
+  cl::Buffer& v1 = cl_v1_m;
 
   std::vector<cl::Event> ev_iter_exec(1);
   for (cl_uint ii = 0; ii < times; ++ii)
@@ -89,15 +89,15 @@ void PS_StochTransientKernel::run
       cl::Event::waitForEvents(ev_iter_exec);
     }
     cl_kernel().setArg(5, fgw_w());
-    cl_kernel().setArg(7, *v0);
-    cl_kernel().setArg(8, *v1);
+    cl_kernel().setArg(7, v0);
+    cl_kernel().setArg(8, v1);
     std::swap(v0, v1);
 
-    cl_queue().enqueueNDRangeKernel(cl_kernel(), cl::NullRange, lws, gws, NULL, &ev_iter_exec[0]); 
+    cl_int err = cl_queue().enqueueNDRangeKernel(cl_kernel(), cl::NullRange, gws, lws, NULL, &ev_iter_exec[0]); 
 
     ++fgw_i_m;
   }
-  cl_queue().enqueueReadBuffer(*v0, CL_TRUE, 0, msc_dim_m * sizeof(cl_double), vec_o, &ev_iter_exec);
+  cl_queue().enqueueReadBuffer(v0, CL_TRUE, 0, msc_dim_m * sizeof(cl_double), vec_o, &ev_iter_exec);
 }
 
 void PS_StochTransientKernel::sum(cl_double* x)
