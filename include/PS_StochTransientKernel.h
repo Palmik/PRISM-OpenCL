@@ -21,6 +21,7 @@ class PS_StochTransientKernel
       , cl_double* fgw_ws
       , cl_uint fgw_l
       );
+    ~PS_StochTransientKernel();
 
     void run(cl_double* vec_i, cl_double* vec_o, cl_uint times = 1);
     void sum(cl_double* x);
@@ -42,7 +43,7 @@ class PS_StochTransientKernel
     cl::Program cl_program_m;
     cl::Kernel cl_kernel_m;
 
-    cl_uint msc_dim_m;
+    cl_uint dim_m;
     cl_uint msc_non_zero_size_m;
     
     cl_double* fgw_w_m; // The FGW weights.
@@ -51,13 +52,15 @@ class PS_StochTransientKernel
   
     cl::Buffer cl_v0_m;
     cl::Buffer cl_v1_m;
-    cl::Buffer cl_msc_non_zero_m;
-    cl::Buffer cl_msc_non_zero_row_m;
-    cl::Buffer cl_msc_col_offset_m;
+    cl::Buffer* cl_fw_non_zero_m;
+    cl::Buffer* cl_fw_non_zero_row_m;
+    cl::Buffer* cl_fw_seg_offset_m;
 
     cl::Buffer cl_fgw_d_m;
     cl::Buffer cl_sum_m;
 
+    cl_uint lws_m;
+    cl_uint gws_m;
 };
 
 #endif // PRISM_PS_STOCH_TRANSIENT_KERNEL
