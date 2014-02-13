@@ -67,17 +67,12 @@ class PS_StochTransientKernel
     }
     
     cl_real fgw_w() { return ((fgw_i_m < fgw_l_m) ? 0.0 : fgw_w_m[fgw_i_m - fgw_l_m]); }
-    cl_real const* fgw_w_ptr()
-    {
-      return ((fgw_i_m < fgw_l_m) ? &zero_m : &fgw_w_m[fgw_i_m - fgw_l_m]);
-    }
 
     cl_device_id cl_device_m;
     cl_context cl_context_m;
     cl_command_queue cl_queue_m;
     cl_program cl_program_m;
-    cl_kernel cl_k0_m;
-    cl_kernel cl_k1_m;
+    cl_kernel cl_kernel_m;
 
     cl_uint dim_m;
     cl_uint msc_non_zero_size_m;
@@ -93,10 +88,7 @@ class PS_StochTransientKernel
     cl_mem cl_fw_seg_offset_m;
 
     cl_mem cl_fgw_d_m;
-    cl_mem cl_fgw_w_m;
     cl_mem cl_sum_m;
-
-    cl_real zero_m;
 
     size_t lws_m;
     size_t gws_m;
