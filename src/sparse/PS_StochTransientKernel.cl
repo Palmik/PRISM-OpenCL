@@ -11,7 +11,7 @@ __kernel void PS_StochTransientKernel
   , const uint fw_ns_rem
 
   , __global real const* fgw_d
-  , const real fgw_w
+  , __global real const* fgw_w
   , __global real* sum
 
   , __global real const* v0
@@ -36,6 +36,6 @@ __kernel void PS_StochTransientKernel
     }
     v1[col] = dot_product;
 
-    sum[col] += fgw_w * dot_product;
+    sum[col] += fgw_w[0] * dot_product;
   }
 }
