@@ -10,6 +10,8 @@
 #include <vector>
 #include <CL/cl.hpp>
 
+#define CL_PROF
+
 unsigned long int least_greater_multiple(unsigned long int a, unsigned long int min)
 {
   unsigned long int r = a;
@@ -24,14 +26,14 @@ PS_StochTransientKernel::PS_StochTransientKernel
   ( cl::Device& cl_device_
   , cl::Context& cl_context_
 
-  , cl_double* msc_non_zero
+  , cl_real* msc_non_zero
   , cl_uint* msc_non_zero_row
   , cl_uint* msc_col_offset
   , cl_uint msc_non_zero_size
   , cl_uint dim
 
-  , cl_double* fgw_d
-  , cl_double* fgw_w_
+  , cl_real* fgw_d
+  , cl_real* fgw_w_
   , cl_uint fgw_l
   )
   : cl_device_m(cl_device_)
@@ -50,20 +52,21 @@ PS_StochTransientKernel::PS_StochTransientKernel
   , fgw_l_m(fgw_l)
   , fgw_i_m(1)
 
-  , cl_v0_m(cl_context(), CL_MEM_READ_WRITE, dim_m * sizeof(cl_double))
-  , cl_v1_m(cl_context(), CL_MEM_READ_WRITE, dim_m * sizeof(cl_double))
-  , cl_fgw_d_m(cl_context(), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, dim_m * sizeof(cl_double), fgw_d)
-  , cl_sum_m(cl_context(), CL_MEM_READ_WRITE, dim_m * sizeof(cl_double))
+  , cl_v0_m(cl_context(), CL_MEM_READ_WRITE, dim_m * sizeof(cl_real))
+  , cl_v1_m(cl_context(), CL_MEM_READ_WRITE, dim_m * sizeof(cl_real))
+  , cl_fgw_d_m(cl_context(), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, dim_m * sizeof(cl_real), fgw_d)
+  , cl_sum_m(cl_context(), CL_MEM_READ_WRITE, dim_m * sizeof(cl_real))
 
   , lws_m(256)
   , gws_m(least_greater_multiple(lws_m, dim_m))
 {
-  cl_queue().enqueueFillBuffer(cl_sum_m, 0.0, 0, dim_m * sizeof(cl_double));
+  std::cerr << msc_non_zero_size << std::endl;
+  cl_queue().enqueueFillBuffer(cl_sum_m, 0.0, 0, dim_m * sizeof(cl_real));
   cl_queue().finish();
   
   cl_uint warp_size = 64;
 
-  std::vector<cl_double> fw_non_zero;
+  std::vector<cl_real> fw_non_zero;
   fw_non_zero.reserve(msc_non_zero_size);
   std::vector<cl_uint> fw_non_zero_row;
   fw_non_zero_row.reserve(msc_non_zero_size);
@@ -102,9 +105,9 @@ PS_StochTransientKernel::PS_StochTransientKernel
     ii += ss;
   }
 
-  cl_fw_non_zero_m = new cl::Buffer(cl_context(), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, fw_non_zero.size() * sizeof(cl_double), fw_non_zero.data());
-  cl_fw_non_zero_row_m = new cl::Buffer(cl_context(), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, fw_non_zero_row.size() * sizeof(cl_double), fw_non_zero_row.data());
-  cl_fw_seg_offset_m = new cl::Buffer(cl_context(), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, fw_seg_offset.size() * sizeof(cl_double), fw_seg_offset.data());
+  cl_fw_non_zero_m = new cl::Buffer(cl_context(), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, fw_non_zero.size() * sizeof(cl_real), fw_non_zero.data());
+  cl_fw_non_zero_row_m = new cl::Buffer(cl_context(), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, fw_non_zero_row.size() * sizeof(cl_real), fw_non_zero_row.data());
+  cl_fw_seg_offset_m = new cl::Buffer(cl_context(), CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, fw_seg_offset.size() * sizeof(cl_real), fw_seg_offset.data());
 
   cl_uint fw_ns = (dim_m + (warp_size - 1)) / warp_size;
   cl_uint fw_ns_rem = (dim_m % warp_size) ? dim_m % warp_size : warp_size;
@@ -130,12 +133,12 @@ PS_StochTransientKernel::~PS_StochTransientKernel()
 }
 
 void PS_StochTransientKernel::run
-  ( cl_double* vec_i
-  , cl_double* vec_o
+  ( cl_real* vec_i
+  , cl_real* vec_o
   , cl_uint times
   )
 {
-  cl_queue().enqueueWriteBuffer(cl_v0_m, CL_TRUE, 0, dim_m * sizeof(cl_double), vec_i);
+  cl_queue().enqueueWriteBuffer(cl_v0_m, CL_TRUE, 0, dim_m * sizeof(cl_real), vec_i);
 
   cl::Buffer& v0 = cl_v0_m;
   cl::Buffer& v1 = cl_v1_m;
@@ -170,11 +173,11 @@ void PS_StochTransientKernel::run
 
     ++fgw_i_m;
   }
-  cl_queue().enqueueReadBuffer(v0, CL_TRUE, 0, dim_m * sizeof(cl_double), vec_o, &ev_iter_exec);
+  cl_queue().enqueueReadBuffer(v0, CL_TRUE, 0, dim_m * sizeof(cl_real), vec_o, &ev_iter_exec);
 }
 
-void PS_StochTransientKernel::sum(cl_double* x)
+void PS_StochTransientKernel::sum(cl_real* x)
 {
-  cl_queue().enqueueReadBuffer(cl_sum_m, CL_TRUE, 0, dim_m * sizeof(cl_double), x);
+  cl_queue().enqueueReadBuffer(cl_sum_m, CL_TRUE, 0, dim_m * sizeof(cl_real), x);
 }
 

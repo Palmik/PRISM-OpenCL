@@ -4,6 +4,8 @@
 #define __CL_ENABLE_EXCEPTIONS
 #include <CL/cl.hpp>
 
+typedef cl_double cl_real;
+
 class PS_StochTransientKernel
 {
   public:
@@ -11,20 +13,20 @@ class PS_StochTransientKernel
       ( cl::Device&  cl_device
       , cl::Context& cl_context
 
-      , cl_double* msc_non_zero
+      , cl_real* msc_non_zero
       , cl_uint* msc_non_zero_row
       , cl_uint* msc_col_offset
       , cl_uint msc_non_zero_size
       , cl_uint msc_dim
 
-      , cl_double* fgw_ds
-      , cl_double* fgw_ws
+      , cl_real* fgw_ds
+      , cl_real* fgw_ws
       , cl_uint fgw_l
       );
     ~PS_StochTransientKernel();
 
-    void run(cl_double* vec_i, cl_double* vec_o, cl_uint times = 1);
-    void sum(cl_double* x);
+    void run(cl_real* vec_i, cl_real* vec_o, cl_uint times = 1);
+    void sum(cl_real* x);
 
   private:
     static char const* cl_kernel_source;
@@ -35,7 +37,7 @@ class PS_StochTransientKernel
     cl::Program& cl_program() { return cl_program_m; }
     cl::Kernel& cl_kernel() { return cl_kernel_m; }
 
-    cl_double fgw_w() { return ((fgw_i_m < fgw_l_m) ? 0.0 : fgw_w_m[fgw_i_m - fgw_l_m]); }
+    cl_real fgw_w() { return ((fgw_i_m < fgw_l_m) ? 0.0 : fgw_w_m[fgw_i_m - fgw_l_m]); }
 
     cl::Device& cl_device_m;
     cl::Context& cl_context_m;
@@ -46,7 +48,7 @@ class PS_StochTransientKernel
     cl_uint dim_m;
     cl_uint msc_non_zero_size_m;
     
-    cl_double* fgw_w_m; // The FGW weights.
+    cl_real* fgw_w_m; // The FGW weights.
     cl_uint fgw_l_m; // The FGW "left" parameter.
     cl_uint fgw_i_m; // The FGW iteration counter.
   
