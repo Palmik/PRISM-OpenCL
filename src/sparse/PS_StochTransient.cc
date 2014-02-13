@@ -172,11 +172,15 @@ jdouble time    // time bound
   }
   
   // Set up OpenCL (platform, device, context)
-  std::vector<cl::Platform> cl_platforms;
-  cl::Platform::get(&cl_platforms);
-  std::vector<cl::Device> cl_devices;
-  cl_platforms[0].getDevices(CL_DEVICE_TYPE_GPU, &cl_devices);
-  cl::Context cl_context(cl_devices);
+  cl_int err = 0;
+
+  cl_platform_id cl_platform_id_m;
+  cl_device_id cl_device_id_m;
+  cl_context cl_context_m;
+
+  err = clGetPlatformIDs(1, &cl_platform_id_m, NULL);
+  err = clGetDeviceIDs(cl_platform_id_m, CL_DEVICE_TYPE_GPU, 1, &cl_device_id_m, NULL);
+  cl_context_m = clCreateContext(0, 1, &cl_device_id_m, NULL, NULL, &err);
 
   // Prepare the matrix and other data for the kernel.
   cl_uint* msc_column_offset = new cl_uint[cmsm->n + 1];
@@ -196,7 +200,7 @@ jdouble time    // time bound
     }
   }
   PS_StochTransientKernel kernel
-    ( cl_devices[0], cl_context
+    ( cl_device_id_m, cl_context_m
 
     , cmsm->non_zeros
     , (cl_uint*)cmsm->rows
@@ -213,6 +217,7 @@ jdouble time    // time bound
   for (iters = 0; (iters < fgw.right) && !done;)
   {
     size_t iters_step = (iters + iters_max_step < fgw.right) ? iters_max_step : fgw.right - iters;
+    if (iters_step == 0) { break; }
     kernel.run(soln, soln2, iters_step);
     iters += iters_step;
 

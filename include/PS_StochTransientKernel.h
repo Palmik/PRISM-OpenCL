@@ -10,8 +10,8 @@ class PS_StochTransientKernel
 {
   public:
     PS_StochTransientKernel
-      ( cl::Device&  cl_device
-      , cl::Context& cl_context
+      ( cl_device_id cl_device_
+      , cl_context cl_context_
 
       , cl_real* msc_non_zero
       , cl_uint* msc_non_zero_row
@@ -29,21 +29,50 @@ class PS_StochTransientKernel
     void sum(cl_real* x);
 
   private:
-    static char const* cl_kernel_source;
+    static char const* cl_program_source;
 
-    cl::Device& cl_device() { return cl_device_m; }
-    cl::Context& cl_context() { return cl_context_m; }
-    cl::CommandQueue& cl_queue() { return cl_queue_m; }
-    cl::Program& cl_program() { return cl_program_m; }
-    cl::Kernel& cl_kernel() { return cl_kernel_m; }
+    template <typename T>
+    void cl_create_buffer(cl_mem& m, cl_mem_flags flags, size_t num, T* host_ptr = NULL)
+    {
+      cl_int err = 0;
+      m = clCreateBuffer(cl_context_m, flags, num * sizeof(T), host_ptr, &err);
+    }
+    
+    template <typename P>
+    void cl_fill_buffer(cl_mem m, P pattern, size_t num, size_t offset = 0)
+    {
+      cl_int err = 0;
+      cl_event ev;
+      err = clEnqueueFillBuffer(cl_queue_m, m, &pattern, sizeof(P), offset, num * sizeof(P), 0, 0, &ev); 
+      err = clWaitForEvents(1, &ev);
+      clReleaseEvent(ev);
+    }
+    
+    template <typename T>
+    cl_int cl_write_buffer(cl_mem m, size_t num, T* host_ptr, size_t offset = 0)
+    {
+      return clEnqueueWriteBuffer(cl_queue_m, m, CL_TRUE, offset, num * sizeof(T), host_ptr, 0, 0, NULL); 
+    }
+    
+    template <typename T>
+    cl_int cl_read_buffer(cl_mem m, size_t num, T* host_ptr, size_t offset = 0)
+    {
+      return clEnqueueReadBuffer(cl_queue_m, m, CL_TRUE, offset, num * sizeof(T), host_ptr, 0, 0, NULL); 
+    }
 
+    template <typename T>
+    cl_int cl_set_kernel_arg(cl_kernel k, cl_uint arg_index, T arg)
+    {
+      return clSetKernelArg(k, arg_index, sizeof(T), &arg);
+    }
+    
     cl_real fgw_w() { return ((fgw_i_m < fgw_l_m) ? 0.0 : fgw_w_m[fgw_i_m - fgw_l_m]); }
 
-    cl::Device& cl_device_m;
-    cl::Context& cl_context_m;
-    cl::CommandQueue cl_queue_m;
-    cl::Program cl_program_m;
-    cl::Kernel cl_kernel_m;
+    cl_device_id cl_device_m;
+    cl_context cl_context_m;
+    cl_command_queue cl_queue_m;
+    cl_program cl_program_m;
+    cl_kernel cl_kernel_m;
 
     cl_uint dim_m;
     cl_uint msc_non_zero_size_m;
@@ -52,17 +81,17 @@ class PS_StochTransientKernel
     cl_uint fgw_l_m; // The FGW "left" parameter.
     cl_uint fgw_i_m; // The FGW iteration counter.
   
-    cl::Buffer cl_v0_m;
-    cl::Buffer cl_v1_m;
-    cl::Buffer* cl_fw_non_zero_m;
-    cl::Buffer* cl_fw_non_zero_row_m;
-    cl::Buffer* cl_fw_seg_offset_m;
+    cl_mem cl_v0_m;
+    cl_mem cl_v1_m;
+    cl_mem cl_fw_non_zero_m;
+    cl_mem cl_fw_non_zero_row_m;
+    cl_mem cl_fw_seg_offset_m;
 
-    cl::Buffer cl_fgw_d_m;
-    cl::Buffer cl_sum_m;
+    cl_mem cl_fgw_d_m;
+    cl_mem cl_sum_m;
 
-    cl_uint lws_m;
-    cl_uint gws_m;
+    size_t lws_m;
+    size_t gws_m;
 };
 
 #endif // PRISM_PS_STOCH_TRANSIENT_KERNEL
