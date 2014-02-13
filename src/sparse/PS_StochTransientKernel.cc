@@ -13,12 +13,12 @@
 unsigned long int least_greater_multiple(unsigned long int a, unsigned long int min)
 {
   unsigned long int r = a;
-  while (r < min) { r *= a; }
+  while (r < min) { r += a; }
   return r;
 }
 
 char const* PS_StochTransientKernel::cl_kernel_source = 
-"#pragma OPENCL EXTENSION cl_khr_fp64 : enable\r\n\r\n__kernel void PS_StochTransientKernel\r\n  ( const uint warp_size\r\n  , __global double const* fw_non_zero\r\n  , __global uint const* fw_non_zero_row\r\n  , __global uint const* fw_seg_offset\r\n  , const uint fw_ns\r\n  , const uint fw_ns_rem\r\n\r\n  , __global double const* fgw_d\r\n  , const double fgw_w\r\n  , __global double* sum\r\n\r\n  , __global double const* v0\r\n  , __global double* v1\r\n  )\r\n{\r\n  int col = get_group_id(0) * get_local_size(0) + get_local_id(0);\r\n  int seg_i = col / warp_size;\r\n  // We assume local_size > warp_size and that both are powers of 2. It should be equivalent to col % warp_size;\r\n  int off_i = get_local_id(0) & (warp_size - 1);\r\n\r\n  uint dim = (fw_ns - 1) * warp_size + fw_ns_rem;\r\n  if (col < dim)\r\n  {\r\n    double dot_product = fgw_d[col] * v0[col];\r\n    uint skip = (seg_i < fw_ns - 1) ? warp_size : fw_ns_rem;\r\n  \r\n    uint sb = fw_seg_offset[seg_i];\r\n    uint se = fw_seg_offset[seg_i + 1];\r\n    for (uint ii = sb + off_i; ii < se; ii += skip)\r\n    {\r\n      dot_product += fw_non_zero[ii] * v0[fw_non_zero_row[ii]];\r\n    }\r\n    v1[col] = dot_product;\r\n\r\n    sum[col] += fgw_w * dot_product;\r\n  }\r\n}\r\n";
+"#pragma OPENCL EXTENSION cl_khr_fp64 : enable\r\n\r\n__kernel void PS_StochTransientKernel\r\n  ( const uint warp_size\r\n  , __global double const* fw_non_zero\r\n  , __global uint const* fw_non_zero_row\r\n  , __global uint const* fw_seg_offset\r\n  , const uint fw_ns\r\n  , const uint fw_ns_rem\r\n\r\n  , __global double const* fgw_d\r\n  , const double fgw_w\r\n  , __global double* sum\r\n\r\n  , __global double const* v0\r\n  , __global double* v1\r\n  )\r\n{\r\n  int col = get_group_id(0) * get_local_size(0) + get_local_id(0);\r\n  int seg_i = col / warp_size;\r\n  // We assume local_size > warp_size and that both are powers of 2. It should be equivalent to col % warp_size;\r\n  int off_i = get_local_id(0) % warp_size;\r\n\r\n  uint dim = (fw_ns - 1) * warp_size + fw_ns_rem;\r\n  if (col < dim)\r\n  {\r\n    double dot_product = fgw_d[col] * v0[col];\r\n    uint skip = (seg_i < fw_ns - 1) ? warp_size : fw_ns_rem;\r\n  \r\n    uint sb = fw_seg_offset[seg_i];\r\n    uint se = fw_seg_offset[seg_i + 1];\r\n    for (uint ii = sb + off_i; ii < se; ii += skip)\r\n    {\r\n      dot_product += fw_non_zero[ii] * v0[fw_non_zero_row[ii]];\r\n    }\r\n    v1[col] = dot_product;\r\n\r\n    sum[col] += fgw_w * dot_product;\r\n  }\r\n}\r\n";
 
 PS_StochTransientKernel::PS_StochTransientKernel
   ( cl::Device& cl_device_
@@ -36,7 +36,11 @@ PS_StochTransientKernel::PS_StochTransientKernel
   )
   : cl_device_m(cl_device_)
   , cl_context_m(cl_context_)
+#ifdef CL_PROF
   , cl_queue_m(cl_context(), cl_device(), CL_QUEUE_PROFILING_ENABLE, NULL)
+#else
+  , cl_queue_m(cl_context(), cl_device(), 0, NULL)
+#endif
   , cl_program_m(cl_context(), std::string(PS_StochTransientKernel::cl_kernel_source), true)
   , cl_kernel_m(cl_program(), "PS_StochTransientKernel")
 
@@ -136,7 +140,9 @@ void PS_StochTransientKernel::run
   cl::Buffer& v0 = cl_v0_m;
   cl::Buffer& v1 = cl_v1_m;
 
+#ifdef CL_PROF
   cl_ulong prev_tend = 0;
+#endif
   std::vector<cl::Event> ev_iter_exec(1);
   for (cl_uint ii = 0; ii < times; ++ii)
   {
@@ -145,6 +151,7 @@ void PS_StochTransientKernel::run
       cl::Event::waitForEvents(ev_iter_exec);
 
       cl_ulong tque, tsub, tbeg, tend;
+#ifdef CL_PROF
       ev_iter_exec[0].getProfilingInfo(CL_PROFILING_COMMAND_QUEUED, &tque); 
       ev_iter_exec[0].getProfilingInfo(CL_PROFILING_COMMAND_SUBMIT, &tsub); 
       ev_iter_exec[0].getProfilingInfo(CL_PROFILING_COMMAND_START, &tbeg); 
@@ -152,6 +159,7 @@ void PS_StochTransientKernel::run
       std::fprintf(stderr, "Iter %u:\nQUE: %lu\nSUB: %lu\nBEG: %lu\nEND: %lu\nQUE - PREV_TEND: %lu\nEND - QUE: %lu\n", fgw_i_m - 1, tque, tsub, tbeg, tend, tque - prev_tend, tend - tque);
       
       prev_tend = tend; 
+#endif
     }
     cl_kernel().setArg(7, fgw_w());
     cl_kernel().setArg(9, v0);

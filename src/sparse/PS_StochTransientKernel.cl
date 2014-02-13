@@ -18,8 +18,7 @@ __kernel void PS_StochTransientKernel
 {
   int col = get_group_id(0) * get_local_size(0) + get_local_id(0);
   int seg_i = col / warp_size;
-  // We assume local_size > warp_size and that both are powers of 2. It should be equivalent to col % warp_size;
-  int off_i = get_local_id(0) & (warp_size - 1);
+  int off_i = get_local_id(0) % warp_size;
 
   uint dim = (fw_ns - 1) * warp_size + fw_ns_rem;
   if (col < dim)
