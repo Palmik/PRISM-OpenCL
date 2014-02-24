@@ -32,10 +32,10 @@ __kernel void PS_StochTransientKernel
     uint se = fw_seg_offset[seg_i + 1];
     for (uint ii = sb + off_i; ii < se; ii += skip)
     {
-      dot_product += fw_non_zero[ii] * v0[fw_non_zero_row[ii]];
+      dot_product = fma(fw_non_zero[ii], v0[fw_non_zero_row[ii]], dot_product);
     }
     v1[col] = dot_product;
 
-    sum[col] += fgw_w * dot_product;
+    sum[col] = fma(fgw_w, dot_product, sum[col]);
   }
 }
