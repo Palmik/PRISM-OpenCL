@@ -1,0 +1,6 @@
+*.log
+*.swp
+*.exe
+*~
+*.o
+bin/
