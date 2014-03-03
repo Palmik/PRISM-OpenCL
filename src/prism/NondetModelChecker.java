@@ -102,7 +102,11 @@ public class NondetModelChecker extends NonProbModelChecker
 
 		// Pass some options onto native code.
 		PrismNative.setCompact(prism.getCompact());
-		PrismNative.setTermCrit(prism.getTermCrit());
+		
+    // OPENCL
+    PrismNative.setOpenCL(prism.getOpenCL());
+		
+    PrismNative.setTermCrit(prism.getTermCrit());
 		PrismNative.setTermCritParam(prism.getTermCritParam());
 		PrismNative.setMaxIters(prism.getMaxIters());
 		PrismNative.setSBMaxMem(prism.getSBMaxMem());

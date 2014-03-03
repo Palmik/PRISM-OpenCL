@@ -78,7 +78,11 @@ public class ProbModelChecker extends NonProbModelChecker
 		prob1 = prism.getProb1();
 		bsccComp = prism.getBSCCComp();
 		PrismNative.setCompact(prism.getCompact());
-		PrismNative.setLinEqMethod(prism.getLinEqMethod());
+    
+    // OPENCL
+		PrismNative.setOpenCL(prism.getOpenCL());
+		
+    PrismNative.setLinEqMethod(prism.getLinEqMethod());
 		PrismNative.setLinEqMethodParam(prism.getLinEqMethodParam());
 		PrismNative.setTermCrit(prism.getTermCrit());
 		PrismNative.setTermCritParam(prism.getTermCritParam());

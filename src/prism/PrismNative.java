@@ -81,6 +81,14 @@ public class PrismNative
 		PN_SetCompact(b);
 	}
 
+  // OPENCL
+
+	private static native void PN_SetOpenCL(boolean b);
+	public static void setOpenCL(boolean b)
+	{
+		PN_SetOpenCL(b);
+	}
+
 	private static native void PN_SetLinEqMethod(int i);
 	public static void setLinEqMethod(int i)
 	{

@@ -125,6 +125,9 @@ public class PrismSettings implements Observer
 	public static final String PRISM_FAU_INITIVAL					= "prism.fau.initival";
 	public static final String PRISM_FAU_ARRAYTHRESHOLD				= "prism.fau.arraythreshold";
 
+  // OpenCL settings.
+  public static final String PRISM_OPENCL_ENABLED = "prism.opencl.enabled";
+
 	//Simulator
 	public static final String SIMULATOR_DEFAULT_NUM_SAMPLES		= "simulator.defaultNumSamples";
 	public static final String SIMULATOR_DEFAULT_CONFIDENCE			= "simulator.defaultConfidence";
@@ -235,6 +238,8 @@ public class PrismSettings implements Observer
 																			"Epsilon value to use for checking termination of iterative numerical methods." },
 			{ INTEGER_TYPE,		PRISM_MAX_ITERS,						"Termination max. iterations",			"2.1",			new Integer(10000),															"0,",																						
 																			"Maximum number of iterations to perform if iterative methods do not converge." },
+			// OPENCL OPTIONS
+      { BOOLEAN_TYPE,		PRISM_OPENCL_ENABLED,					"Use OpenCL",				 	"4.1",			new Boolean(false),															"", "Whether the OpenCL implementation is enabled" },																							
 			// MODEL CHECKING OPTIONS:
 			{ BOOLEAN_TYPE,		PRISM_PRECOMPUTATION,					"Use precomputation",					"2.1",			new Boolean(true),															"",																							
 																			"Whether to use model checking precomputation algorithms (Prob0, Prob1, etc.), where optional." },
@@ -1094,6 +1099,10 @@ public class PrismSettings implements Observer
 		else if (sw.equals("nocompact")) {
 			set(PRISM_COMPACT, false);
 		}
+    // OpenCL settings
+    else if (sw.equals("opencl") || sw.equals("cl")) {
+      set(PRISM_OPENCL_ENABLED, true);
+    }
 		// Sparse bits info
 		else if (sw.equals("sbl")) {
 			if (i < args.length - 1) {
@@ -1403,6 +1412,9 @@ public class PrismSettings implements Observer
 		mainLog.println("-explicit (or -ex) ............. Use the explicit engine");
 		mainLog.println("-ptamethod <name> .............. Specify PTA engine (games, digital) [default: games]");
 		mainLog.println("-transientmethod <name> ........ CTMC transient analysis methof (unif, fau) [default: unif]");
+		mainLog.println();
+    mainLog.println("OPENCL OPTIONS");
+    mainLog.println("-opencl (or -cl) ............... Use the OpenCL implementation when available (Sparse (StochTransient))"); 
 		mainLog.println();
 		mainLog.println("SOLUTION METHODS (LINEAR EQUATIONS):");
 		mainLog.println("-power (or -pow, -pwr) ......... Use the Power method for numerical computation");

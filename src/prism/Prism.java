@@ -391,6 +391,12 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 		settings.set(PrismSettings.PRISM_COMPACT, b);
 	}
 
+  // OPENCL
+  public void setOpenCL(boolean b) throws PrismException
+  {
+    settings.set(PrismSettings.PRISM_OPENCL_ENABLED, b);
+  }
+
 	public void setLinEqMethod(int i) throws PrismException
 	{
 		settings.setChoice(PrismSettings.PRISM_LIN_EQ_METHOD, i);
@@ -769,6 +775,12 @@ public class Prism extends PrismComponent implements PrismSettingsListener
 	{
 		return settings.getBoolean(PrismSettings.PRISM_COMPACT);
 	}
+
+  // OPENCL
+  public boolean getOpenCL()
+  {
+    return settings.getBoolean(PrismSettings.PRISM_OPENCL_ENABLED);
+  }
 
 	public long getCUDDMaxMem()
 	{
