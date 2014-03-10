@@ -26,6 +26,7 @@
 
 // includes
 #include "PrismSparse.h"
+#include "PS_FGKernel.h"
 #include <math.h>
 #include <util.h>
 #include <cudd.h>
@@ -62,6 +63,10 @@ jdouble time		// time bound
 	ODDNode *odd = jlong_to_ODDNode(od);		// odd
 	DdNode **rvars = jlong_to_DdNode_array(rv);	// row vars
 	DdNode **cvars = jlong_to_DdNode_array(cv);	// col vars
+
+  if (opencl) {
+    compact = false;
+  }
 
 	// mtbdds
 	DdNode *tmp = NULL;
@@ -233,110 +238,209 @@ jdouble time		// time bound
 	} else {
 		for (i = 0; i < n; i++) sum[i] += soln[i] / unif;
 	}
-	
-	// note that we ignore max_iters as we know how any iterations _should_ be performed
-	for (iters = 1; (iters <= fgw.right) && !done; iters++) {
-		
-		// store local copies of stuff
-		double *non_zeros;
-		unsigned char *row_counts;
-		int *row_starts;
-		bool use_counts;
-		unsigned int *cols;
-		double *dist;
-		int dist_shift;
-		int dist_mask;
-		if (!compact_tr) {
-			non_zeros = rmsm->non_zeros;
-			row_counts = rmsm->row_counts;
-			row_starts = (int *)rmsm->row_counts;
-			use_counts = rmsm->use_counts;
-			cols = rmsm->cols;
-		} else {
-			row_counts = cmsrsm->row_counts;
-			row_starts = (int *)cmsrsm->row_counts;
-			use_counts = cmsrsm->use_counts;
-			cols = cmsrsm->cols;
-			dist = cmsrsm->dist;
-			dist_shift = cmsrsm->dist_shift;
-			dist_mask = cmsrsm->dist_mask;
-		}
-		
-		// do matrix vector multiply bit
-		h = 0;
-		for (i = 0; i < n; i++) {
-			d = (!compact_d) ? (diags[i] * soln[i]) : (diags_dist->dist[diags_dist->ptrs[i]] * soln[i]);
-			if (!use_counts) { l = row_starts[i]; h = row_starts[i+1]; }
-			else { l = h; h += row_counts[i]; }
-			// "row major" version
-			if (!compact_tr) {
-				for (j = l; j < h; j++) {
-					d += non_zeros[j] * soln[cols[j]];
-				}
-			// "compact msr" version
-			} else {
-				for (j = l; j < h; j++) {
-					d += dist[(int)(cols[j] & dist_mask)] * soln[(int)(cols[j] >> dist_shift)];
-				}
-			}
-			// set vector element
-			soln2[i] = d;
-		}
-		
-		// check for steady state convergence
-		if (do_ss_detect) {
-			sup_norm = 0.0;
-			for (i = 0; i < n; i++) {
-				x = fabs(soln2[i] - soln[i]);
-				if (term_crit == TERM_CRIT_RELATIVE) {
-					x /= soln2[i];
-				}
-				if (x > sup_norm) sup_norm = x;
-			}
-			if (sup_norm < term_crit_param_unif) {
-				done = true;
-			}
-		}
-		
-		// special case when finished early (steady-state detected)
-		if (done) {
-			// work out sum of remaining poisson probabilities
-			if (iters <= fgw.left) {
-				weight = time - iters/unif;
-			} else {
-				weight = 0.0;
-				for (i = iters; i <= fgw.right; i++) {
-					weight += fgw.weights[i-fgw.left];
-				}
-			}
-			// add to sum
-			for (i = 0; i < n; i++) sum[i] += weight * soln2[i];
-			
-			PS_PrintToMainLog(env, "\nSteady state detected at iteration %ld\n", iters);
-			num_iters = iters;
-			break;
-		}
-		
-		// print occasional status update
-		if ((util_cpu_time() - start3) > UPDATE_DELAY) {
-			PS_PrintToMainLog(env, "Iteration %d (of %d): ", iters, fgw.right);
-			if (do_ss_detect) PS_PrintToMainLog(env, "max %sdiff=%f, ", (term_crit == TERM_CRIT_RELATIVE)?"relative ":"", sup_norm);
-			PS_PrintToMainLog(env, "%.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
-			start3 = util_cpu_time();
-		}
-		
-		// prepare for next iteration
-		tmpsoln = soln;
-		soln = soln2;
-		soln2 = tmpsoln;
-		
-		// add to sum
-		if (iters < fgw.left) {
-			for (i = 0; i < n; i++) sum[i] += soln[i] / unif;
-		} else {
-			for (i = 0; i < n; i++) sum[i] += fgw.weights[iters-fgw.left] * soln[i];
-		}
-	}
+
+  if (!opencl) {  
+    // note that we ignore max_iters as we know how any iterations _should_ be performed
+    for (iters = 1; (iters <= fgw.right) && !done; iters++) {
+      
+      // store local copies of stuff
+      double *non_zeros;
+      unsigned char *row_counts;
+      int *row_starts;
+      bool use_counts;
+      unsigned int *cols;
+      double *dist;
+      int dist_shift;
+      int dist_mask;
+      if (!compact_tr) {
+        non_zeros = rmsm->non_zeros;
+        row_counts = rmsm->row_counts;
+        row_starts = (int *)rmsm->row_counts;
+        use_counts = rmsm->use_counts;
+        cols = rmsm->cols;
+      } else {
+        row_counts = cmsrsm->row_counts;
+        row_starts = (int *)cmsrsm->row_counts;
+        use_counts = cmsrsm->use_counts;
+        cols = cmsrsm->cols;
+        dist = cmsrsm->dist;
+        dist_shift = cmsrsm->dist_shift;
+        dist_mask = cmsrsm->dist_mask;
+      }
+      
+      // do matrix vector multiply bit
+      h = 0;
+      for (i = 0; i < n; i++) {
+        d = (!compact_d) ? (diags[i] * soln[i]) : (diags_dist->dist[diags_dist->ptrs[i]] * soln[i]);
+        if (!use_counts) { l = row_starts[i]; h = row_starts[i+1]; }
+        else { l = h; h += row_counts[i]; }
+        // "row major" version
+        if (!compact_tr) {
+          for (j = l; j < h; j++) {
+            d += non_zeros[j] * soln[cols[j]];
+          }
+        // "compact msr" version
+        } else {
+          for (j = l; j < h; j++) {
+            d += dist[(int)(cols[j] & dist_mask)] * soln[(int)(cols[j] >> dist_shift)];
+          }
+        }
+        // set vector element
+        soln2[i] = d;
+      }
+      
+      // check for steady state convergence
+      if (do_ss_detect) {
+        sup_norm = 0.0;
+        for (i = 0; i < n; i++) {
+          x = fabs(soln2[i] - soln[i]);
+          if (term_crit == TERM_CRIT_RELATIVE) {
+            x /= soln2[i];
+          }
+          if (x > sup_norm) sup_norm = x;
+        }
+        if (sup_norm < term_crit_param_unif) {
+          done = true;
+        }
+      }
+      
+      // special case when finished early (steady-state detected)
+      if (done) {
+        // work out sum of remaining poisson probabilities
+        if (iters <= fgw.left) {
+          weight = time - iters/unif;
+        } else {
+          weight = 0.0;
+          for (i = iters; i <= fgw.right; i++) {
+            weight += fgw.weights[i-fgw.left];
+          }
+        }
+        // add to sum
+        for (i = 0; i < n; i++) sum[i] += weight * soln2[i];
+        
+        PS_PrintToMainLog(env, "\nSteady state detected at iteration %ld\n", iters);
+        num_iters = iters;
+        break;
+      }
+      
+      // print occasional status update
+      if ((util_cpu_time() - start3) > UPDATE_DELAY) {
+        PS_PrintToMainLog(env, "Iteration %d (of %d): ", iters, fgw.right);
+        if (do_ss_detect) PS_PrintToMainLog(env, "max %sdiff=%f, ", (term_crit == TERM_CRIT_RELATIVE)?"relative ":"", sup_norm);
+        PS_PrintToMainLog(env, "%.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
+        start3 = util_cpu_time();
+      }
+      
+      // prepare for next iteration
+      tmpsoln = soln;
+      soln = soln2;
+      soln2 = tmpsoln;
+      
+      // add to sum
+      if (iters < fgw.left) {
+        for (i = 0; i < n; i++) sum[i] += soln[i] / unif;
+      } else {
+        for (i = 0; i < n; i++) sum[i] += fgw.weights[iters-fgw.left] * soln[i];
+      }
+    }
+  }
+  else { // OpenCL
+    // Set up OpenCL (platform, device, context)
+    cl_int err = 0;
+
+    cl_platform_id cl_platform_id_m;
+    cl_device_id cl_device_id_m;
+    cl_context cl_context_m;
+
+    err = clGetPlatformIDs(1, &cl_platform_id_m, NULL);
+    err = clGetDeviceIDs(cl_platform_id_m, CL_DEVICE_TYPE_GPU, 1, &cl_device_id_m, NULL);
+    cl_context_m = clCreateContext(0, 1, &cl_device_id_m, NULL, NULL, &err);
+
+    // Prepare the matrix and other data for the kernel.
+    cl_uint* msc_row_offset = new cl_uint[rmsm->n + 1];
+    if (rmsm->use_counts) {
+      msc_row_offset[0] = 0;
+      for (size_t ii = 1; ii <= rmsm->n; ++ii) {
+        msc_row_offset[ii] = msc_row_offset[ii - 1] + rmsm->row_counts[ii - 1];
+      }
+    }
+    else {
+      for (size_t ii = 0; ii <= rmsm->n; ++ii) {
+        msc_row_offset[ii] = rmsm->row_counts[ii];
+      }
+    }
+    PS_FGKernel kernel
+      ( cl_device_id_m, cl_context_m
+
+      , rmsm->non_zeros
+      , (cl_uint*)rmsm->cols
+      , msc_row_offset
+      , (cl_uint)rmsm->nnz
+      , (cl_uint)n
+      
+      , diags
+      , fgw.weights
+      , fgw.left
+      );
+
+    size_t iters_max_step = fgw.right / 2;
+    for (iters = 0; (iters < fgw.right) && !done;) {
+      size_t iters_step = (iters + iters_max_step < fgw.right) ? iters_max_step : fgw.right - iters;
+      if (iters_step == 0) { break; }
+      kernel.run(soln, soln2, iters_step);
+      iters += iters_step;
+
+      // check for steady state convergence
+      if (do_ss_detect) {
+        sup_norm = 0.0;
+        for (i = 0; i < n; i++) {
+          x = fabs(soln2[i] - soln[i]);
+          if (term_crit == TERM_CRIT_RELATIVE) {
+            x /= soln2[i];
+          }
+          if (x > sup_norm) sup_norm = x;
+        }
+        if (sup_norm < term_crit_param_unif) {
+          done = true;
+        }
+      }
+      
+      // special case when finished early (steady-state detected)
+      if (done) {
+        kernel.sum(sum);
+        // work out sum of remaining poisson probabilities
+        if (iters <= fgw.left) {
+          weight = 1.0;
+        } else {
+          weight = 0.0;
+          for (i = iters; i <= fgw.right; i++) {
+            weight += fgw.weights[i-fgw.left];
+          }
+        }
+        // add to sum
+        for (i = 0; i < n; i++) sum[i] += weight * soln2[i];
+        PS_PrintToMainLog(env, "\nSteady state detected at iteration %ld\n", iters);
+        num_iters = iters;
+        break;
+      }
+      
+      // print occasional status update
+      if ((util_cpu_time() - start3) > UPDATE_DELAY) {
+        PS_PrintToMainLog(env, "Iteration %d (of %d): ", iters, fgw.right);
+        if (do_ss_detect) PS_PrintToMainLog(env, "max %sdiff=%f, ", (term_crit == TERM_CRIT_RELATIVE)?"relative ":"", sup_norm);
+        PS_PrintToMainLog(env, "%.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
+        start3 = util_cpu_time();
+      }
+      
+      // prepare for next iteration
+      tmpsoln = soln;
+      soln = soln2;
+      soln2 = tmpsoln;
+      
+    }
+    kernel.sum(sum);
+    delete[] msc_row_offset;
+  }
 	
 	// stop clocks
 	stop = util_cpu_time();

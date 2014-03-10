@@ -6,10 +6,10 @@
 
 typedef cl_double cl_real;
 
-class PS_StochTransientKernel
+class PS_FGKernel
 {
   public:
-    PS_StochTransientKernel
+    PS_FGKernel
       ( cl_device_id cl_device_
       , cl_context cl_context_
 
@@ -23,7 +23,7 @@ class PS_StochTransientKernel
       , cl_real* fgw_ws
       , cl_uint fgw_l
       );
-    ~PS_StochTransientKernel();
+    ~PS_FGKernel();
 
     void run(cl_real* vec_i, cl_real* vec_o, cl_uint times = 1);
     void sum(cl_real* x);

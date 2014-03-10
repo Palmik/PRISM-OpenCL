@@ -2,7 +2,7 @@
 
 typedef double real;
 
-__kernel void PS_StochTransientKernel
+__kernel void PS_FGKernel
   ( const uint warp_size
   , __global real const* fw_non_zero
   , __global uint const* fw_non_zero_row
