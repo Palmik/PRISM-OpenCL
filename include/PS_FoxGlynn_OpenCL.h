@@ -1,15 +1,15 @@
-#ifndef PRISM_PS_STOCH_TRANSIENT_KERNEL
-#define PRISM_PS_STOCH_TRANSIENT_KERNEL
+#ifndef PRISM_PS_FOX_GLYNN_OPENCL
+#define PRISM_PS_FOX_GLYNN_OPENCL
 
 #define __CL_ENABLE_EXCEPTIONS
 #include <CL/cl.hpp>
 
 typedef cl_double cl_real;
 
-class PS_FGKernel
+class PS_FoxGlynn_OpenCLKernel
 {
   public:
-    PS_FGKernel
+    PS_FoxGlynn_OpenCLKernel
       ( cl_device_id cl_device_
       , cl_context cl_context_
 
@@ -23,7 +23,7 @@ class PS_FGKernel
       , cl_real* fgw_ws
       , cl_uint fgw_l
       );
-    ~PS_FGKernel();
+    ~PS_FoxGlynn_OpenCLKernel();
 
     void run(cl_real* vec_i, cl_real* vec_o, cl_uint times = 1);
     void sum(cl_real* x);
@@ -94,4 +94,4 @@ class PS_FGKernel
     size_t gws_m;
 };
 
-#endif // PRISM_PS_STOCH_TRANSIENT_KERNEL
+#endif // PRISM_PS_FOX_GLYNN_OPENCL

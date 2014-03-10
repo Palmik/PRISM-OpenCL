@@ -26,7 +26,7 @@
 
 // includes
 #include "PrismSparse.h"
-#include "PS_FGKernel.h"
+#include "PS_FoxGlynn_OpenCL.h"
 #include <math.h>
 #include <util.h>
 #include <cudd.h>
@@ -357,7 +357,7 @@ jlong __jlongpointer mu	// probs for multiplying
         msc_row_offset[ii] = rmsm->row_counts[ii];
       }
     }
-    PS_FGKernel kernel
+    PS_FoxGlynn_OpenCLKernel kernel
       ( cl_device_id_m, cl_context_m
 
       , rmsm->non_zeros

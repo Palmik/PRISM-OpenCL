@@ -1,4 +1,4 @@
-#include "PS_FGKernel.h"
+#include "PS_FoxGlynn_OpenCL.h"
 
 #include <sys/stat.h>
 
@@ -19,10 +19,10 @@ unsigned long int least_greater_multiple(unsigned long int a, unsigned long int 
   return r;
 }
 
-char const* PS_FGKernel::cl_program_source = 
-"#pragma OPENCL EXTENSION cl_khr_fp64 : enable\r\n\r\ntypedef double real;\r\n\r\n__kernel void PS_FGKernel\r\n  ( const uint warp_size\r\n  , __global real const* fw_non_zero\r\n  , __global uint const* fw_non_zero_row\r\n  , __global uint const* fw_seg_offset\r\n  , const uint fw_ns\r\n  , const uint fw_ns_rem\r\n\r\n  , __global real const* fgw_d\r\n  , const real fgw_w\r\n  , __global real* sum\r\n\r\n  , __global real const* v0\r\n  , __global real* v1\r\n  )\r\n{\r\n  int col = get_group_id(0) * get_local_size(0) + get_local_id(0);\r\n  int seg_i = col / warp_size;\r\n  int off_i = get_local_id(0) % warp_size;\r\n\r\n  uint dim = (fw_ns - 1) * warp_size + fw_ns_rem;\r\n  if (col < dim)\r\n  {\r\n    real dot_product = fgw_d[col] * v0[col];\r\n    uint skip = (seg_i < fw_ns - 1) ? warp_size : fw_ns_rem;\r\n  \r\n    uint sb = fw_seg_offset[seg_i];\r\n    uint se = fw_seg_offset[seg_i + 1];\r\n    for (uint ii = sb + off_i; ii < se; ii += skip)\r\n    {\r\n      dot_product = fma(fw_non_zero[ii], v0[fw_non_zero_row[ii]], dot_product);\r\n    }\r\n    v1[col] = dot_product;\r\n\r\n    sum[col] = fma(fgw_w, dot_product, sum[col]);\r\n  }\r\n}\r\n";
+char const* PS_FoxGlynn_OpenCLKernel::cl_program_source = 
+"#pragma OPENCL EXTENSION cl_khr_fp64 : enable\r\n\r\ntypedef double real;\r\n\r\n__kernel void PS_FoxGlynn\r\n  ( const uint warp_size\r\n  , __global real const* fw_non_zero\r\n  , __global uint const* fw_non_zero_row\r\n  , __global uint const* fw_seg_offset\r\n  , const uint fw_ns\r\n  , const uint fw_ns_rem\r\n\r\n  , __global real const* fgw_d\r\n  , const real fgw_w\r\n  , __global real* sum\r\n\r\n  , __global real const* v0\r\n  , __global real* v1\r\n  )\r\n{\r\n  int col = get_group_id(0) * get_local_size(0) + get_local_id(0);\r\n  int seg_i = col / warp_size;\r\n  int off_i = get_local_id(0) % warp_size;\r\n\r\n  uint dim = (fw_ns - 1) * warp_size + fw_ns_rem;\r\n  if (col < dim)\r\n  {\r\n    real dot_product = fgw_d[col] * v0[col];\r\n    uint skip = (seg_i < fw_ns - 1) ? warp_size : fw_ns_rem;\r\n  \r\n    uint sb = fw_seg_offset[seg_i];\r\n    uint se = fw_seg_offset[seg_i + 1];\r\n    for (uint ii = sb + off_i; ii < se; ii += skip)\r\n    {\r\n      dot_product = fma(fw_non_zero[ii], v0[fw_non_zero_row[ii]], dot_product);\r\n    }\r\n    v1[col] = dot_product;\r\n\r\n    sum[col] = fma(fgw_w, dot_product, sum[col]);\r\n  }\r\n}\r\n";
 
-PS_FGKernel::PS_FGKernel
+PS_FoxGlynn_OpenCLKernel::PS_FoxGlynn_OpenCLKernel
   ( cl_device_id cl_device_
   , cl_context cl_context_
 
@@ -52,9 +52,9 @@ PS_FGKernel::PS_FGKernel
 
   // Create the basics.
   cl_queue_m = clCreateCommandQueue(cl_context_m, cl_device_m, 0, &err);
-  cl_program_m = clCreateProgramWithSource(cl_context_m, 1, &PS_FGKernel::cl_program_source, NULL, &err);
+  cl_program_m = clCreateProgramWithSource(cl_context_m, 1, &PS_FoxGlynn_OpenCLKernel::cl_program_source, NULL, &err);
   err = clBuildProgram(cl_program_m, 1, &cl_device_m, NULL, NULL, NULL);
-  cl_kernel_m = clCreateKernel(cl_program_m, "PS_FGKernel", &err);
+  cl_kernel_m = clCreateKernel(cl_program_m, "PS_FoxGlynn", &err);
 
   // Compute the MSC full-warp representation.
   cl_uint warp_size = 64;
@@ -126,7 +126,7 @@ PS_FGKernel::PS_FGKernel
   cl_set_kernel_arg(cl_kernel_m, 10, cl_v1_m);
 }
 
-PS_FGKernel::~PS_FGKernel()
+PS_FoxGlynn_OpenCLKernel::~PS_FoxGlynn_OpenCLKernel()
 {
   clReleaseKernel(cl_kernel_m);
     
@@ -139,7 +139,7 @@ PS_FGKernel::~PS_FGKernel()
   clReleaseMemObject(cl_v0_m);
 }
 
-void PS_FGKernel::run
+void PS_FoxGlynn_OpenCLKernel::run
   ( cl_real* vec_i
   , cl_real* vec_o
   , cl_uint times
@@ -172,7 +172,7 @@ void PS_FGKernel::run
   clReleaseEvent(ev_iter_exec);
 }
 
-void PS_FGKernel::sum(cl_real* x)
+void PS_FoxGlynn_OpenCLKernel::sum(cl_real* x)
 {
   cl_read_buffer<cl_real>(cl_sum_m, dim_m, x);
 }
