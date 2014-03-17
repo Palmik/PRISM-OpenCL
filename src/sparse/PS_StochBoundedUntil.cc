@@ -333,17 +333,6 @@ jlong __jlongpointer mu	// probs for multiplying
     }
   }
   else { // OpenCL
-    // Set up OpenCL (platform, device, context)
-    cl_int err = 0;
-
-    cl_platform_id cl_platform_id_m;
-    cl_device_id cl_device_id_m;
-    cl_context cl_context_m;
-
-    err = clGetPlatformIDs(1, &cl_platform_id_m, NULL);
-    err = clGetDeviceIDs(cl_platform_id_m, CL_DEVICE_TYPE_GPU, 1, &cl_device_id_m, NULL);
-    cl_context_m = clCreateContext(0, 1, &cl_device_id_m, NULL, NULL, &err);
-
     // Prepare the matrix and other data for the kernel.
     cl_uint* msc_row_offset = new cl_uint[rmsm->n + 1];
     if (rmsm->use_counts) {
@@ -357,77 +346,21 @@ jlong __jlongpointer mu	// probs for multiplying
         msc_row_offset[ii] = rmsm->row_counts[ii];
       }
     }
-    PS_FoxGlynn_OpenCLKernel kernel
-      ( cl_device_id_m, cl_context_m
-
+    PS_FoxGlynn_OpenCL
+      ( env 
       , rmsm->non_zeros
       , (cl_uint*)rmsm->cols
       , msc_row_offset
       , (cl_uint)rmsm->nnz
       , (cl_uint)n
-      
-      , diags
-      , fgw.weights
-      , fgw.left
+    
+      , diags, fgw.weights, fgw.left, fgw.right
+      , soln, soln2, sum
+      , num_iters
+
+      , start2
+      , start3
       );
-
-    size_t iters_max_step = fgw.right / 2;
-    for (iters = 0; (iters < fgw.right) && !done;) {
-      size_t iters_step = (iters + iters_max_step < fgw.right) ? iters_max_step : fgw.right - iters;
-      if (iters_step == 0) { break; }
-      kernel.run(soln, soln2, iters_step);
-      iters += iters_step;
-
-      // check for steady state convergence
-      if (do_ss_detect) {
-        sup_norm = 0.0;
-        for (i = 0; i < n; i++) {
-          x = fabs(soln2[i] - soln[i]);
-          if (term_crit == TERM_CRIT_RELATIVE) {
-            x /= soln2[i];
-          }
-          if (x > sup_norm) sup_norm = x;
-        }
-        if (sup_norm < term_crit_param_unif) {
-          done = true;
-        }
-      }
-      
-      // special case when finished early (steady-state detected)
-      if (done) {
-        kernel.sum(sum);
-        // work out sum of remaining poisson probabilities
-        if (iters <= fgw.left) {
-          weight = 1.0;
-        } else {
-          weight = 0.0;
-          for (i = iters; i <= fgw.right; i++) {
-            weight += fgw.weights[i-fgw.left];
-          }
-        }
-        // add to sum
-        for (i = 0; i < n; i++) sum[i] += weight * soln2[i];
-        PS_PrintToMainLog(env, "\nSteady state detected at iteration %ld\n", iters);
-        num_iters = iters;
-        break;
-      }
-      
-      // print occasional status update
-      if ((util_cpu_time() - start3) > UPDATE_DELAY) {
-        PS_PrintToMainLog(env, "Iteration %d (of %d): ", iters, fgw.right);
-        if (do_ss_detect) PS_PrintToMainLog(env, "max %sdiff=%f, ", (term_crit == TERM_CRIT_RELATIVE)?"relative ":"", sup_norm);
-        PS_PrintToMainLog(env, "%.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
-        start3 = util_cpu_time();
-      }
-      
-      // prepare for next iteration
-      tmpsoln = soln;
-      soln = soln2;
-      soln2 = tmpsoln;
-      
-    }
-    kernel.sum(sum);
-    delete[] msc_row_offset;
   }
 	
 	// stop clocks

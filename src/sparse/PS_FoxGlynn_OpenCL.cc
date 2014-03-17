@@ -10,8 +10,134 @@
 #include <vector>
 #include <CL/cl.hpp>
 
+#include <math.h>
+#include <prism.h>
+#include <util.h>
+#include <dd.h>
+#include "sparse.h"
+#include "jnipointer.h"
+#include "PrismSparseGlob.h"
+
 #define CL_PROF
 
+void PS_FoxGlynn_OpenCL
+  ( JNIEnv* env
+  
+  , cl_real* msc_non_zero
+  , cl_uint* msc_non_zero_row
+  , cl_uint* msc_col_offset
+  , cl_uint msc_non_zero_size
+  , cl_uint msc_dim
+
+  , cl_real* fgw_ds
+  , cl_real* fgw_ws
+  , cl_uint fgw_l
+  , cl_uint fgw_r
+
+  , cl_real* soln1
+  , cl_real* soln2
+  , cl_real* sum
+
+  , long int& num_iters
+
+  , long int start2
+  , long int start3 
+  )
+{
+  double term_crit_param_unif = term_crit_param / 8.0;
+  
+  // Set up OpenCL (platform, device, context)
+  cl_int err = 0;
+
+  cl_platform_id cl_platform_id_m;
+  cl_device_id cl_device_id_m;
+  cl_context cl_context_m;
+
+  err = clGetPlatformIDs(1, &cl_platform_id_m, NULL);
+  err = clGetDeviceIDs(cl_platform_id_m, CL_DEVICE_TYPE_GPU, 1, &cl_device_id_m, NULL);
+  cl_context_m = clCreateContext(0, 1, &cl_device_id_m, NULL, NULL, &err);
+
+  PS_FoxGlynn_OpenCLKernel kernel
+    ( cl_device_id_m, cl_context_m
+
+    , msc_non_zero 
+    , msc_non_zero_row
+    , msc_col_offset
+    , msc_non_zero_size
+    , msc_dim
+    
+    , fgw_ds
+    , fgw_ws
+    , fgw_l
+    );
+
+  bool done = false;
+  size_t iters_max_step = fgw_r / 2;
+  for (size_t iters = 0; (iters < fgw_r) && !done;)
+  {
+    size_t iters_step = (iters + iters_max_step < fgw_r) ? iters_max_step : fgw_r - iters;
+    if (iters_step == 0) { break; }
+    kernel.run(soln1, soln2, iters_step);
+    iters += iters_step;
+
+    // check for steady state convergence
+    cl_real sup_norm;
+    if (do_ss_detect)
+    {
+      sup_norm = 0.0;
+      for (size_t i = 0; i < msc_dim; i++)
+      {
+        cl_real x = fabs(soln2[i] - soln1[i]);
+        if (term_crit == TERM_CRIT_RELATIVE)
+        {
+          x /= soln2[i];
+        }
+        if (x > sup_norm) sup_norm = x;
+      }
+      if (sup_norm < term_crit_param_unif)
+      {
+        done = true;
+      }
+    }
+    
+    // special case when finished early (steady-state detected)
+    if (done)
+    {
+      kernel.sum(sum);
+      // work out sum of remaining poisson probabilities
+      cl_real weight = 1.0;
+      if (iters > fgw_l)
+      {
+        weight = 0.0;
+        for (size_t i = iters; i <= fgw_r; i++)
+        {
+          weight += fgw_ws[i - fgw_l];
+        }
+      }
+      // add to sum
+      for (size_t i = 0; i < msc_dim; i++) sum[i] += weight * soln2[i];
+      PS_PrintToMainLog(env, "\nSteady state detected at iteration %ld\n", iters);
+      num_iters = iters;
+      break;
+    }
+    
+    // print occasional status update
+    if ((util_cpu_time() - start3) > UPDATE_DELAY)
+    {
+      PS_PrintToMainLog(env, "Iteration %d (of %d): ", iters, fgw_r);
+      if (do_ss_detect) PS_PrintToMainLog(env, "max %sdiff=%f, ", (term_crit == TERM_CRIT_RELATIVE)?"relative ":"", sup_norm);
+      PS_PrintToMainLog(env, "%.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
+      start3 = util_cpu_time();
+    }
+    
+    // prepare for next iteration
+    cl_real* tmpsoln = soln1;
+    soln1 = soln2;
+    soln2 = tmpsoln;
+    
+  }
+  kernel.sum(sum);
+}
 unsigned long int least_greater_multiple(unsigned long int a, unsigned long int min)
 {
   unsigned long int r = a;

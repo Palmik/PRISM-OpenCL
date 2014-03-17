@@ -27,16 +27,19 @@
 // includes
 #include "PrismSparse.h"
 #include <math.h>
+#include <prism.h>
+#include "PS_FoxGlynn_OpenCL.h"
+#include "sparse.h"
+#include "PrismSparseGlob.h"
+#include "jnipointer.h"
+#include <iostream>
+#include <new>
 #include <util.h>
 #include <cudd.h>
 #include <dd.h>
 #include <odd.h>
 #include <dv.h>
-#include <prism.h>
-#include "sparse.h"
-#include "PrismSparseGlob.h"
-#include "jnipointer.h"
-#include <new>
+//------------------------------------------------------------------------------
 
 
 JNIEXPORT jlong __jlongpointer JNICALL Java_sparse_PrismSparse_PS_1StochTransient_OpenCL
@@ -69,17 +72,16 @@ jint num_cvars,
 jdouble time		// time bound
 )
 {
-  if (opencl)
-  {
-    return Java_sparse_PrismSparse_PS_1StochTransient_OpenCL(env, cls, tr, od, in, rv, num_rvars, cv, num_cvars, time);
-  }
-
 	// cast function parameters
 	DdNode *trans = jlong_to_DdNode(tr);		// trans matrix
 	ODDNode *odd = jlong_to_ODDNode(od);		// odd
 	double *init = jlong_to_double(in);			// initial distribution
 	DdNode **rvars = jlong_to_DdNode_array(rv);	// row vars
 	DdNode **cvars = jlong_to_DdNode_array(cv);	// col vars
+
+  if (opencl) {
+    compact = false;
+  }
 
 	// model stats
 	int n;
@@ -223,107 +225,138 @@ jdouble time		// time bound
 	if (fgw.left == 0) for (i = 0; i < n; i++) {
 		sum[i] += fgw.weights[0] * soln[i];
 	}
-	
-	// note that we ignore max_iters as we know how any iterations _should_ be performed
-	for (iters = 1; (iters <= fgw.right) && !done; iters++) {
-		
-		// store local copies of stuff
-		double *non_zeros;
-		unsigned char *col_counts;
-		int *col_starts;
-		bool use_counts;
-		unsigned int *rows;
-		double *dist;
-		int dist_shift;
-		int dist_mask;
-		if (!compact_tr) {
-			non_zeros = cmsm->non_zeros;
-			col_counts = cmsm->col_counts;
-			col_starts = (int *)cmsm->col_counts;
-			use_counts = cmsm->use_counts;
-			rows = cmsm->rows;
-		} else {
-			col_counts = cmscsm->col_counts;
-			col_starts = (int *)cmscsm->col_counts;
-			use_counts = cmscsm->use_counts;
-			rows = cmscsm->rows;
-			dist = cmscsm->dist;
-			dist_shift = cmscsm->dist_shift;
-			dist_mask = cmscsm->dist_mask;
-		}
-		
-		// do matrix vector multiply bit
-		h = 0;
-		for (i = 0; i < n; i++) {
-			d = (!compact_d) ? (diags[i] * soln[i]) : (diags_dist->dist[diags_dist->ptrs[i]] * soln[i]);
-			if (!use_counts) { l = col_starts[i]; h = col_starts[i+1]; }
-			else { l = h; h += col_counts[i]; }
-			// "column major" version
-			if (!compact_tr) {
-				for (j = l; j < h; j++) {
-					d += non_zeros[j] * soln[rows[j]];
-				}
-			// "compact msc" version
-			} else {
-				for (j = l; j < h; j++) {
-					d += dist[(int)(rows[j] & dist_mask)] * soln[(int)(rows[j] >> dist_shift)];
-				}
-			}
-			// set vector element
-			soln2[i] = d;
-		}
-		
-		// check for steady state convergence
-		if (do_ss_detect) {
-			sup_norm = 0.0;
-			for (i = 0; i < n; i++) {
-				x = fabs(soln2[i] - soln[i]);
-				if (term_crit == TERM_CRIT_RELATIVE) {
-					x /= soln2[i];
-				}
-				if (x > sup_norm) sup_norm = x;
-			}
-			if (sup_norm < term_crit_param_unif) {
-				done = true;
-			}
-		}
-		
-		// special case when finished early (steady-state detected)
-		if (done) {
-			// work out sum of remaining poisson probabilities
-			if (iters <= fgw.left) {
-				weight = 1.0;
-			} else {
-				weight = 0.0;
-				for (i = iters; i <= fgw.right; i++) {
-					weight += fgw.weights[i-fgw.left];
-				}
-			}
-			// add to sum
-			for (i = 0; i < n; i++) sum[i] += weight * soln2[i];
-			PS_PrintToMainLog(env, "\nSteady state detected at iteration %ld\n", iters);
-			num_iters = iters;
-			break;
-		}
-		
-		// print occasional status update
-		if ((util_cpu_time() - start3) > UPDATE_DELAY) {
-			PS_PrintToMainLog(env, "Iteration %d (of %d): ", iters, fgw.right);
-			if (do_ss_detect) PS_PrintToMainLog(env, "max %sdiff=%f, ", (term_crit == TERM_CRIT_RELATIVE)?"relative ":"", sup_norm);
-			PS_PrintToMainLog(env, "%.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
-			start3 = util_cpu_time();
-		}
-		
-		// prepare for next iteration
-		tmpsoln = soln;
-		soln = soln2;
-		soln2 = tmpsoln;
-		
-		// add to sum
-		if (iters >= fgw.left) {
-			for (i = 0; i < n; i++) sum[i] += fgw.weights[iters-fgw.left] * soln[i];
-		}
-	}
+
+  if (!opencl) {  
+    // note that we ignore max_iters as we know how any iterations _should_ be performed
+    for (iters = 1; (iters <= fgw.right) && !done; iters++) {
+      
+      // store local copies of stuff
+      double *non_zeros;
+      unsigned char *col_counts;
+      int *col_starts;
+      bool use_counts;
+      unsigned int *rows;
+      double *dist;
+      int dist_shift;
+      int dist_mask;
+      if (!compact_tr) {
+        non_zeros = cmsm->non_zeros;
+        col_counts = cmsm->col_counts;
+        col_starts = (int *)cmsm->col_counts;
+        use_counts = cmsm->use_counts;
+        rows = cmsm->rows;
+      } else {
+        col_counts = cmscsm->col_counts;
+        col_starts = (int *)cmscsm->col_counts;
+        use_counts = cmscsm->use_counts;
+        rows = cmscsm->rows;
+        dist = cmscsm->dist;
+        dist_shift = cmscsm->dist_shift;
+        dist_mask = cmscsm->dist_mask;
+      }
+      
+      // do matrix vector multiply bit
+      h = 0;
+      for (i = 0; i < n; i++) {
+        d = (!compact_d) ? (diags[i] * soln[i]) : (diags_dist->dist[diags_dist->ptrs[i]] * soln[i]);
+        if (!use_counts) { l = col_starts[i]; h = col_starts[i+1]; }
+        else { l = h; h += col_counts[i]; }
+        // "column major" version
+        if (!compact_tr) {
+          for (j = l; j < h; j++) {
+            d += non_zeros[j] * soln[rows[j]];
+          }
+        // "compact msc" version
+        } else {
+          for (j = l; j < h; j++) {
+            d += dist[(int)(rows[j] & dist_mask)] * soln[(int)(rows[j] >> dist_shift)];
+          }
+        }
+        // set vector element
+        soln2[i] = d;
+      }
+      
+      // check for steady state convergence
+      if (do_ss_detect) {
+        sup_norm = 0.0;
+        for (i = 0; i < n; i++) {
+          x = fabs(soln2[i] - soln[i]);
+          if (term_crit == TERM_CRIT_RELATIVE) {
+            x /= soln2[i];
+          }
+          if (x > sup_norm) sup_norm = x;
+        }
+        if (sup_norm < term_crit_param_unif) {
+          done = true;
+        }
+      }
+      
+      // special case when finished early (steady-state detected)
+      if (done) {
+        // work out sum of remaining poisson probabilities
+        if (iters <= fgw.left) {
+          weight = 1.0;
+        } else {
+          weight = 0.0;
+          for (i = iters; i <= fgw.right; i++) {
+            weight += fgw.weights[i-fgw.left];
+          }
+        }
+        // add to sum
+        for (i = 0; i < n; i++) sum[i] += weight * soln2[i];
+        PS_PrintToMainLog(env, "\nSteady state detected at iteration %ld\n", iters);
+        num_iters = iters;
+        break;
+      }
+      
+      // print occasional status update
+      if ((util_cpu_time() - start3) > UPDATE_DELAY) {
+        PS_PrintToMainLog(env, "Iteration %d (of %d): ", iters, fgw.right);
+        if (do_ss_detect) PS_PrintToMainLog(env, "max %sdiff=%f, ", (term_crit == TERM_CRIT_RELATIVE)?"relative ":"", sup_norm);
+        PS_PrintToMainLog(env, "%.2f sec so far\n", ((double)(util_cpu_time() - start2)/1000));
+        start3 = util_cpu_time();
+      }
+      
+      // prepare for next iteration
+      tmpsoln = soln;
+      soln = soln2;
+      soln2 = tmpsoln;
+      
+      // add to sum
+      if (iters >= fgw.left) {
+        for (i = 0; i < n; i++) sum[i] += fgw.weights[iters-fgw.left] * soln[i];
+      }
+    }
+  } else { // OpenCL
+    // Prepare the matrix and other data for the kernel.
+    cl_uint* msc_column_offset = new cl_uint[cmsm->n + 1];
+    if (cmsm->use_counts) {
+      msc_column_offset[0] = 0;
+      for (size_t ii = 1; ii <= cmsm->n; ++ii) {
+        msc_column_offset[ii] = msc_column_offset[ii - 1] + cmsm->col_counts[ii - 1];
+      }
+    }
+    else {
+      for (size_t ii = 0; ii <= cmsm->n; ++ii) {
+        msc_column_offset[ii] = cmsm->col_counts[ii];
+      }
+    }
+    PS_FoxGlynn_OpenCL
+      ( env 
+      , cmsm->non_zeros
+      , (cl_uint*)cmsm->rows
+      , msc_column_offset
+      , (cl_uint)cmsm->nnz
+      , (cl_uint)n
+    
+      , diags, fgw.weights, fgw.left, fgw.right
+      , soln, soln2, sum
+      , num_iters
+
+      , start2
+      , start3
+      );
+  }
 	
 	// stop clocks
 	stop = util_cpu_time();

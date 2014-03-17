@@ -3,8 +3,34 @@
 
 #define __CL_ENABLE_EXCEPTIONS
 #include <CL/cl.hpp>
+#include "jnipointer.h"
 
 typedef cl_double cl_real;
+
+
+void PS_FoxGlynn_OpenCL
+  ( JNIEnv* env
+  
+  , cl_real* msc_non_zero
+  , cl_uint* msc_non_zero_row
+  , cl_uint* msc_col_offset
+  , cl_uint msc_non_zero_size
+  , cl_uint msc_dim
+
+  , cl_real* fgw_ds
+  , cl_real* fgw_ws
+  , cl_uint fgw_l
+  , cl_uint fgw_r
+
+  , cl_real* soln1
+  , cl_real* soln2
+  , cl_real* sum
+
+  , long int& num_iters
+
+  , long int start2
+  , long int start3 
+  );
 
 class PS_FoxGlynn_OpenCLKernel
 {
