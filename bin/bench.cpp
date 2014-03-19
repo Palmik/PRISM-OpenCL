@@ -22,13 +22,13 @@ int main()
     for (size_t pi = 0; pi < prop_count; ++pi)
     {
       std::getline(std::cin, property);
-      std::cout << "b " << property << std::endl;
+      std::cout << property << std::endl;
       
       std::string constants;
       for (size_t ci = 0; ci < const_count; ++ci)
       {
         std::getline(std::cin, constants);
-        std::cout << "a " << constants << std::endl;
+        std::cout << constants << std::endl;
         
         size_t model_states = 0;
         size_t model_transitions = 0;
