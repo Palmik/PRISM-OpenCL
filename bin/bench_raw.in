@@ -1,0 +1,10 @@
+cluster/cluster.sm
+cluster/cluster.csl
+2
+4
+9
+4
+N=40,T=10
+N=60,T=10
+N=80,T=10
+N=100,T=10
