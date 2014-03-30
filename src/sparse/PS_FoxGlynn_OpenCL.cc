@@ -57,7 +57,11 @@ void PS_FoxGlynn_OpenCL
   err = clGetDeviceIDs(cl_platform_id_m, CL_DEVICE_TYPE_GPU, 1, &cl_device_id_m, NULL);
   cl_context_m = clCreateContext(0, 1, &cl_device_id_m, NULL, NULL, &err);
 
+#ifdef CL_FOX_GLYNN_NAIVE
+  PS_FoxGlynn_OpenCLKernelNaive kernel
+#else
   PS_FoxGlynn_OpenCLKernel kernel
+#endif
     ( cl_device_id_m, cl_context_m
 
     , msc_non_zero 
@@ -138,15 +142,13 @@ void PS_FoxGlynn_OpenCL
   }
   kernel.sum(sum);
 }
+
 unsigned long int least_greater_multiple(unsigned long int a, unsigned long int min)
 {
   unsigned long int r = a;
   while (r < min) { r += a; }
   return r;
 }
-
-char const* PS_FoxGlynn_OpenCLKernel::cl_program_source = 
-"#pragma OPENCL EXTENSION cl_khr_fp64 : enable\r\n\r\ntypedef double real;\r\n\r\n__kernel void PS_FoxGlynn\r\n  ( const uint warp_size\r\n  , __global real const* fw_non_zero\r\n  , __global uint const* fw_non_zero_row\r\n  , __global uint const* fw_seg_offset\r\n  , const uint fw_ns\r\n  , const uint fw_ns_rem\r\n\r\n  , __global real const* fgw_d\r\n  , const real fgw_w\r\n  , __global real* sum\r\n\r\n  , __global real const* v0\r\n  , __global real* v1\r\n  )\r\n{\r\n  int col = get_group_id(0) * get_local_size(0) + get_local_id(0);\r\n  int seg_i = col / warp_size;\r\n  int off_i = get_local_id(0) % warp_size;\r\n\r\n  uint dim = (fw_ns - 1) * warp_size + fw_ns_rem;\r\n  if (col < dim)\r\n  {\r\n    real dot_product = fgw_d[col] * v0[col];\r\n    uint skip = (seg_i < fw_ns - 1) ? warp_size : fw_ns_rem;\r\n  \r\n    uint sb = fw_seg_offset[seg_i];\r\n    uint se = fw_seg_offset[seg_i + 1];\r\n    for (uint ii = sb + off_i; ii < se; ii += skip)\r\n    {\r\n      dot_product = fma(fw_non_zero[ii], v0[fw_non_zero_row[ii]], dot_product);\r\n    }\r\n    v1[col] = dot_product;\r\n\r\n    sum[col] = fma(fgw_w, dot_product, sum[col]);\r\n  }\r\n}\r\n";
 
 PS_FoxGlynn_OpenCLKernel::PS_FoxGlynn_OpenCLKernel
   ( cl_device_id cl_device_
@@ -162,8 +164,7 @@ PS_FoxGlynn_OpenCLKernel::PS_FoxGlynn_OpenCLKernel
   , cl_real* fgw_w_
   , cl_uint fgw_l_
   )
-  : cl_device_m(cl_device_)
-  , cl_context_m(cl_context_)
+  : OpenCLKernel(cl_device_, cl_context_, PS_FoxGlynn_Source, "PS_FoxGlynn")
 
   , dim_m(dim)
   , msc_non_zero_size_m(msc_non_zero_size)
@@ -175,12 +176,6 @@ PS_FoxGlynn_OpenCLKernel::PS_FoxGlynn_OpenCLKernel
   , gws_m(least_greater_multiple(lws_m, dim_m))
 {
   cl_int err = 0;
-
-  // Create the basics.
-  cl_queue_m = clCreateCommandQueue(cl_context_m, cl_device_m, 0, &err);
-  cl_program_m = clCreateProgramWithSource(cl_context_m, 1, &PS_FoxGlynn_OpenCLKernel::cl_program_source, NULL, &err);
-  err = clBuildProgram(cl_program_m, 1, &cl_device_m, NULL, NULL, NULL);
-  cl_kernel_m = clCreateKernel(cl_program_m, "PS_FoxGlynn", &err);
 
   // Compute the MSC full-warp representation.
   cl_uint warp_size = 64;
@@ -254,8 +249,6 @@ PS_FoxGlynn_OpenCLKernel::PS_FoxGlynn_OpenCLKernel
 
 PS_FoxGlynn_OpenCLKernel::~PS_FoxGlynn_OpenCLKernel()
 {
-  clReleaseKernel(cl_kernel_m);
-    
   clReleaseMemObject(cl_sum_m);
   clReleaseMemObject(cl_fgw_d_m);
   clReleaseMemObject(cl_fw_seg_offset_m);
@@ -301,5 +294,129 @@ void PS_FoxGlynn_OpenCLKernel::run
 void PS_FoxGlynn_OpenCLKernel::sum(cl_real* x)
 {
   cl_read_buffer<cl_real>(cl_sum_m, dim_m, x);
+}
+
+#ifdef CL_FOX_GLYNN_NAIVE
+PS_FoxGlynn_OpenCLKernelNaive::PS_FoxGlynn_OpenCLKernelNaive
+  ( cl_device_id cl_device_
+  , cl_context cl_context_
+
+  , cl_real* msc_non_zero
+  , cl_uint* msc_non_zero_row
+  , cl_uint* msc_col_offset
+  , cl_uint msc_non_zero_size
+  , cl_uint dim
+
+  , cl_real* fgw_d_
+  , cl_real* fgw_w_
+  , cl_uint fgw_l_
+  )
+  : OpenCLKernel(cl_device_, cl_context_, PS_FoxGlynn_Source, "PS_FoxGlynn_Naive")
+
+  , dim_m(dim)
+  , msc_non_zero_size_m(msc_non_zero_size)
+  , fgw_w_m(fgw_w_)
+  , fgw_l_m(fgw_l_)
+  , fgw_i_m(1)
+
+  , lws_m(256)
+  , gws_m(least_greater_multiple(lws_m, dim_m))
+{
+  cl_int err = 0;
+
+  // Create the buffers.
+  cl_create_buffer<cl_real>(cl_v0_m, CL_MEM_READ_WRITE, dim_m);
+  cl_create_buffer<cl_real>(cl_v1_m, CL_MEM_READ_WRITE, dim_m);
+
+  cl_create_buffer<cl_real>(cl_msc_non_zero_m, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, msc_non_zero_size, msc_non_zero);
+  cl_create_buffer<cl_uint>(cl_msc_non_zero_row_m, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, msc_non_zero_size, msc_non_zero_row);
+  cl_create_buffer<cl_uint>(cl_msc_col_offset_m, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, dim_m + 1, msc_col_offset);
+
+  cl_create_buffer<cl_real>(cl_fgw_d_m, CL_MEM_READ_ONLY | CL_MEM_COPY_HOST_PTR, dim_m, fgw_d_);
+  cl_create_buffer<cl_real>(cl_sum_m, CL_MEM_READ_WRITE, dim_m);
+  cl_fill_buffer<cl_real>(cl_sum_m, 0.0, dim_m);
+
+  cl_set_kernel_arg(cl_kernel_m, 0, cl_msc_non_zero_m);
+  cl_set_kernel_arg(cl_kernel_m, 1, cl_msc_non_zero_row_m);
+  cl_set_kernel_arg(cl_kernel_m, 2, cl_msc_col_offset_m);
+  cl_set_kernel_arg(cl_kernel_m, 3, dim_m);
+  cl_set_kernel_arg(cl_kernel_m, 4, cl_fgw_d_m);
+  // fgw_w
+  cl_set_kernel_arg(cl_kernel_m, 6, cl_sum_m);
+  cl_set_kernel_arg(cl_kernel_m, 7, cl_v0_m);
+  cl_set_kernel_arg(cl_kernel_m, 8, cl_v1_m);
+}
+
+PS_FoxGlynn_OpenCLKernelNaive::~PS_FoxGlynn_OpenCLKernelNaive()
+{
+  clReleaseMemObject(cl_sum_m);
+  clReleaseMemObject(cl_fgw_d_m);
+  clReleaseMemObject(cl_msc_col_offset_m);
+  clReleaseMemObject(cl_msc_non_zero_row_m);
+  clReleaseMemObject(cl_msc_non_zero_m);
+  clReleaseMemObject(cl_v1_m);
+  clReleaseMemObject(cl_v0_m);
+}
+
+void PS_FoxGlynn_OpenCLKernelNaive::run
+  ( cl_real* vec_i
+  , cl_real* vec_o
+  , cl_uint times
+  )
+{
+  cl_write_buffer<cl_real>(cl_v0_m, dim_m, vec_i);
+
+  cl_mem& v0 = cl_v0_m;
+  cl_mem& v1 = cl_v1_m;
+
+  cl_event ev_iter_exec = NULL;
+  for (cl_uint ii = 0; ii < times; ++ii)
+  {
+    if (ii != 0)
+    {
+      clWaitForEvents(1, &ev_iter_exec);
+    }
+    cl_set_kernel_arg(cl_kernel_m, 5, fgw_w());
+    cl_set_kernel_arg(cl_kernel_m, 7, v0);
+    cl_set_kernel_arg(cl_kernel_m, 8, v1);
+    std::swap(v0, v1);
+
+    clReleaseEvent(ev_iter_exec);
+    clEnqueueNDRangeKernel(cl_queue_m, cl_kernel_m, 1, NULL, &gws_m, &lws_m, 0, NULL, &ev_iter_exec);
+
+    ++fgw_i_m;
+  }
+  clWaitForEvents(1, &ev_iter_exec);
+  cl_read_buffer<cl_real>(v0, dim_m, vec_o);
+  clReleaseEvent(ev_iter_exec);
+}
+
+void PS_FoxGlynn_OpenCLKernelNaive::sum(cl_real* x)
+{
+  cl_read_buffer<cl_real>(cl_sum_m, dim_m, x);
+}
+#endif // CL_FOX_GLYNN_NAIVE
+
+OpenCLKernel::OpenCLKernel
+  ( cl_device_id cl_device_
+  , cl_context cl_context_
+  , char const* source
+  , char const* kernel_name
+  )
+  : cl_device_m(cl_device_)
+  , cl_context_m(cl_context_)
+{
+  cl_int err = 0;
+
+  // Create the basics.
+  cl_queue_m = clCreateCommandQueue(cl_context_m, cl_device_m, 0, &err);
+  cl_program_m = clCreateProgramWithSource(cl_context_m, 1, &source, NULL, &err);
+  err = clBuildProgram(cl_program_m, 1, &cl_device_m, NULL, NULL, NULL);
+  cl_kernel_m = clCreateKernel(cl_program_m, kernel_name, &err);
+}
+
+OpenCLKernel::~OpenCLKernel()
+{
+  clReleaseKernel(cl_kernel_m);
 }
 
