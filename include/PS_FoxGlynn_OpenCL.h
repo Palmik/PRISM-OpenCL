@@ -7,8 +7,6 @@
 
 typedef cl_double cl_real;
 
-#define CL_FOX_GLYNN_NAIVE
-
 void PS_FoxGlynn_OpenCL
   ( JNIEnv* env
   
