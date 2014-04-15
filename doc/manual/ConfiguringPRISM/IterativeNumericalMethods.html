@@ -84,6 +84,8 @@ either "relative" or "absolute" (the default is "relative"). This can be changed
 in order to trap the cases when computation will not converge.
 The default limit is 10,000 but can be changed with the "Termination max. iterations" option (switch <code>-maxiters &lt;val&gt;</code>). Computations that reach this upper limit will trigger an error during model checking to alert the user to this fact.
 </p>
+<p class='vspace'>For the specific case of "steady-state convergence checking" during uniformisation (which is an optimisation for uniformisation), convergence checking can be disabled with the "Use steady-state detection" option (command-line switch <code>-nossdetect</code>).
+</p>
 <div class='vspace'></div><h3>Linear equation systems</h3>
 <p>For instances where PRISM has to solve a linear equation system (see above), the numerical method used can be selected by the user. Below is a list of the alternatives available and the switches used to select them from the command-line. The corresponding GUI option is "Linear equations method".
 </p>

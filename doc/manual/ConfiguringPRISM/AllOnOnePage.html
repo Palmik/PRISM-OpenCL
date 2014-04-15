@@ -106,25 +106,13 @@ a.varlink { text-decoration:none; }
   <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ConfiguringPRISM/AllOnOnePage?action=sourceblock&amp;num=1' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
-<p class='vspace'>For some switches, whose format is not straightforward, there is additional help available on the command-line, using <code>-help switch</code>. For example:
-</p>
-<div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock2'>
-  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism -help const</span><br/>
-<span style="font-weight:bold;">prism -help simpath</span><br/>
-<span style="font-weight:bold;">prism -help exportresults</span><br/>
-<span style="font-weight:bold;">prism -help exportmodel</span><br/>
-</div></div>
-  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ConfiguringPRISM/AllOnOnePage?action=sourceblock&amp;num=2' type='text/plain'>[&#036;[Get Code]]</a></div>
-</div>
-
 <p class='vspace'>The <code>.prism</code> settings file is <em>ignored</em> by the command-line version (unlike earlier versions of PRISM, where it was used). You can, however, request that the settings file <em>is</em> read, using the <code>-settings</code> switch, e.g.:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock3'>
+<div class='sourceblock ' id='sourceblock2'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism -settings ~/.prism</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ConfiguringPRISM/AllOnOnePage?action=sourceblock&amp;num=3' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ConfiguringPRISM/AllOnOnePage?action=sourceblock&amp;num=2' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>In the following sections, we give a brief description of the most important configuration options available.
@@ -135,8 +123,7 @@ a.varlink { text-decoration:none; }
 PRISM often offers several different solution methods that can be used when performing model checking.
 The choice of method (and their settings) depends on the type of analysis that is being done.
 </p>
-<p class='vspace'><a name='mdp' id='mdp'></a>
-</p><h3>MDP Solution Methods</h3>
+<div class='vspace'></div><h3>MDP Solution Methods</h3>
 <p>When analysing MDPs, there are several options.
 You can select these under the "MDP solution method" setting from the GUI,
 or use the command-line switches listed below.
@@ -149,29 +136,7 @@ or classic MDP texts such as [<a class='wikilink' href='../Main/References.html#
 </li><li><strong>Policy iteration</strong> (switch <code>-politer</code>)
 </li><li><strong>Modified policy iteration</strong> (switch <code>-modpoliter</code>)
 </li></ul><p class='vspace'>Where the methods above use iterative numerical solution, you can also use the settings under "Convergence" described in the <a class='wikilink' href='IterativeNumericalMethods.html'>Iterative Numerical Methods</a> section.
-</p>
-<p class='vspace'><a name='transient' id='transient'></a>
-</p><h3>CTMC Transient Analysis</h3>
-<p>When computing transient probabilities of a CTMC
-(either <a class='wikilink' href='../RunningPRISM/ComputingSteady-stateAndTransientProbabilities.html'>directly</a> or when verifying <a class='wikilink' href='../PropertySpecification/ThePOperator.html#bounded'>time-bounded operators</a> of CSL), there are two options:
-<em>uniformisation</em> and <em>fast adaptive uniformisation</em> (FAU). These can be selected using the GUI option "Transient probability computation method", or using the command-line switch <code>-transientmethod &lt;name&gt;</code>, where <code>&lt;name&gt;</code> is either <code>unif</code> or <code>fau</code>.
-</p>
-<p class='vspace'><strong>Uniformisation</strong> is a standard iterative numerical method for computing transient probabilities on a CTMC, which works by reducing the problem to an analysis of a "uniformised" DTMC.
-As an optimisation, when it is detected that the transient probabilities have converged, no further iterations are performed. If necessary (e.g. in case of round-off problems), this optimisation can be disabled with the "Use steady-state detection" option (command-line switch <code>-nossdetect</code>).
-</p>
-<p class='vspace'><a name='fau' id='fau'></a>
-<strong>Fast adaptive uniformisation</strong> (FAU) [<a class='wikilink' href='../Main/References.html#MWDH10'>MWDH10</a>] is a method to efficiently approximate transient properties of large CTMCs. The basic idea is that only the parts of the model that are relevant for the current time period are kept in memory. In more detail, starting with the initial states, in each step FAU
-explores further states in a DTMC which is a discrete-time version of the original CTMC. By combining the
-probabilities there with those of a certain continuous-time stochastic process (a birth process), transient properties in the original CTMC can be computed. If it turns out that the probability of being in some state in the DTMC is below a given threshold, this state is removed from the model explored so far. After a given number of steps, which corresponds to the number of steps which are likely to happen within the time bound, the exploration can be stopped. In the implementation in PRISM [<a class='wikilink' href='../Main/References.html#DHK13'>DHK13</a>], FAU can be used to compute transient probability distributions and to model check the following types of non-nested CSL formulas: time-bounded until, instantaneous reward, cumulative reward.
-</p>
-<p class='vspace'>The following options can be used to configure FAU:
-</p>
-<div class='vspace'></div><ul><li>"FAU epsilon" (switch <code>-fauepsilon &lt;x&gt;</code>): FAU analyses the DTMC for a number of iterations such that the probability of more steps being relevant is below this value. The default is 1e-6.
-<div class='vspace'></div></li><li>"FAU cut off delta" (switch <code>-faudelta &lt;x&gt;</code>): States that have a lower probability than this value are discarded. The default is 1e-12.
-<div class='vspace'></div></li><li>"FAU array threshold" (switch <code>-fauarraythreshold &lt;x&gt;</code>): After this number of steps without any new states being explored or discarded, FAU will switch to a faster, fixed-size data structure until further states have to be explored or discarded. The default is 100.
-<div class='vspace'></div></li><li>"FAU time intervals" (switch <code>-fauintervals &lt;x&gt;</code>): In some cases, it is advantageous to divide the time interval the analysis is done for into several smaller intervals. This option dictates the number of (equal length) intervals used for this split. The default is 1, meaning that only one time interval is used.
-<div class='vspace'></div></li><li>"FAU initial time interval" (switch <code>-fauinitival &lt;x&gt;</code>): It is also possible to specify an additional initial time interval which is handled separately from the rest of the time. This is often advantageous, because in this interval certain parameters of the model can be explored, which can subsequently be used to speed up the computation of the remaining time interval. The default for this option is 1.0.
-</li></ul><hr />
+</p><hr />
 <h1>Computation Engines</h1>
 <h3>Computation engines</h3>
 <p>PRISM contains four main <em>engines</em>,
@@ -215,13 +180,13 @@ Performance (time and space), however, may vary significantly and if you are usi
 </li></ul><p class='vspace'>When using the PRISM GUI, the engine to be used for model checking can be selected from the "Engine" option under the "PRISM" tab of the "Options" dialog. From the command-line, engines are activated using the <code>-mtbdd</code>, <code>-sparse</code>, <code>-hybrid</code> and <code>-explicit</code> (or <code>-m</code>, <code>-s</code>, <code>-h</code> and <code>-ex</code>, respectively) switches, e.g.:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock4'>
+<div class='sourceblock ' id='sourceblock3'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism poll2.sm -tr 1000 -m</span><br/>
 <span style="font-weight:bold;">prism poll2.sm -tr 1000 -s</span><br/>
 <span style="font-weight:bold;">prism poll2.sm -tr 1000 -h</span><br/>
 <span style="font-weight:bold;">prism poll2.sm -tr 1000 -ex</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ConfiguringPRISM/AllOnOnePage?action=sourceblock&amp;num=4' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ConfiguringPRISM/AllOnOnePage?action=sourceblock&amp;num=3' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>Note also that precise details regarding the memory usage of the current engine are displayed during model checking (from the GUI, check the "Log" tab). This can provide valuable feedback when experimenting with different engines.
@@ -258,6 +223,8 @@ either "relative" or "absolute" (the default is "relative"). This can be changed
 in order to trap the cases when computation will not converge.
 The default limit is 10,000 but can be changed with the "Termination max. iterations" option (switch <code>-maxiters &lt;val&gt;</code>). Computations that reach this upper limit will trigger an error during model checking to alert the user to this fact.
 </p>
+<p class='vspace'>For the specific case of "steady-state convergence checking" during uniformisation (which is an optimisation for uniformisation), convergence checking can be disabled with the "Use steady-state detection" option (command-line switch <code>-nossdetect</code>).
+</p>
 <div class='vspace'></div><h3>Linear equation systems</h3>
 <p>For instances where PRISM has to solve a linear equation system (see above), the numerical method used can be selected by the user. Below is a list of the alternatives available and the switches used to select them from the command-line. The corresponding GUI option is "Linear equations method".
 </p>
@@ -284,7 +251,6 @@ To enable the use of fairness constraints (for <code><strong>P</strong></code> o
 </p>
 <div class='vspace'></div><h3>Probability/rate checks</h3>
 <p>By default, when constructing a model, PRISM checks that all probabilities and rates are within acceptable ranges (i.e. are between 0 and 1, or are non-negative, respectively). For DTMCs and MDPs, it also checks that the probabilities sum up to one for each command. These checks are often very useful for highlighting user modelling errors and it is strongly recommended that you keep them enabled, however if you need to disable them you can do so via option "do prob checks?" in the GUI or command-line switch <code>-noprobchecks</code>.
-You can also change the level of precision used to check that probabilities sum to 1 using the option "Probability sum threshold" (or command-line switch <code>-sumroundoff</code>.
 </p>
 <div class='vspace'></div><h3>CUDD memory</h3>
 <p>CUDD, the underlying BDD and MTBDD library used in PRISM has an upper memory limit.
@@ -302,22 +268,22 @@ To resolve this problem, you can increase this memory limit.
 On Unix, Linux or Mac OS X platforms, this is done by setting the environment variable PRISM_JAVAMAXMEM, for example (under a <code>tcsh</code> shell):
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock5'>
+<div class='sourceblock ' id='sourceblock4'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">setenv PRISM_JAVAMAXMEM 512m</span><br/>
 <span style="font-weight:bold;">prism big_model.pm</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ConfiguringPRISM/AllOnOnePage?action=sourceblock&amp;num=5' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ConfiguringPRISM/AllOnOnePage?action=sourceblock&amp;num=4' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>or (under a <code>bash</code> shell):
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock6'>
+<div class='sourceblock ' id='sourceblock5'>
   <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">PRISM_JAVAMAXMEM=512m</span><br/>
 <span style="font-weight:bold;">export PRISM_JAVAMAXMEM</span><br/>
 <span style="font-weight:bold;">prism big_model.pm</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ConfiguringPRISM/AllOnOnePage?action=sourceblock&amp;num=6' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ConfiguringPRISM/AllOnOnePage?action=sourceblock&amp;num=5' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>The lower case <code>m</code> in <code>512m</code> denotes MB.

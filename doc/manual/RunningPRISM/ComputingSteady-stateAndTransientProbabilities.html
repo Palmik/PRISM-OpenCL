@@ -124,7 +124,10 @@ From the command-line, add the <code>-steadystate</code> (or <code>-ss</code>) s
 The probabilities are computed for all states of the model and displayed,
 either on the screen (from the command-line) or in the log (from the GUI).
 </p>
-<p class='vspace'>To instead export the vector of computed probabilities to a file, use the "Model | Compute/export" option from the GUI, or the <code>-exportsteadystate</code> (or <code>-exportss</code>) and <code>-exporttransient</code> (or <code>-exporttr</code>) switches from the command-line:
+<p class='vspace'>From the command-line, a few additional options are available.
+It also possible to send the probability distribution to a file,
+rather than the screen, using the <code>-exportsteadystate</code> (or <code>-exportss</code>)
+and <code>-exporttransient</code> (or <code>-exporttr</code>) switches:
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock3'>
@@ -134,10 +137,9 @@ either on the screen (from the command-line) or in the log (from the GUI).
   <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/RunningPRISM/ComputingSteady-stateAndTransientProbabilities?action=sourceblock&amp;num=3' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
-<p class='vspace'>From the command-line, you can request that the probability vectors exported are in Matlab format by adding the <code>-exportmatlab</code> switch.
+<p class='vspace'>You can also request that the probability vectors exported are in Matlab format by adding the <code>-exportmatlab</code> switch.
 </p>
-<div class='vspace'></div><h3>Initial probability distributions</h3>
-<p>By default, for both steady-state and transient probability computation,
+<p class='vspace'>By default, for both steady-state and transient probability computation,
 PRISM assumes that the initial probability distribution of the model is
 an equiprobable choice over the set of initial states.
 You can override this and provide a specific initial distribution. This is done using the <code>-importinitdist</code> switch. The format for this imported distribution is identical to the ones exported by PRISM, i.e. simply a list of probabilities for all states separated by new lines. For example, this:
@@ -159,8 +161,7 @@ You can override this and provide a specific initial distribution. This is done 
   <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/RunningPRISM/ComputingSteady-stateAndTransientProbabilities?action=sourceblock&amp;num=5' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
-<div class='vspace'></div><h3>Ranges of time values</h3>
-<p>Finally, you can compute transient probabilities for a range of time values, e.g.:
+<p class='vspace'>Finally, you can compute transient probabilities for a range of time values, e.g.:
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock6'>
@@ -204,7 +205,6 @@ You can override this and provide a specific initial distribution. This is done 
 </li><li><a class='wikilink' href='SupportForPEPAModels.html'>Support For PEPA Models</a>
 </li><li><a class='wikilink' href='SupportForSBML.html'>Support For SBML</a>
 </li><li><a class='wikilink' href='ExplicitModelImport.html'>Explicit Model Import</a>
-</li><li><a class='wikilink' href='ParametricModelChecking.html'>Parametric Model Checking</a>
 </li></ul><p>[ <a class='wikilink' href='AllOnOnePage.html'>View all</a> ]
 </p>
 

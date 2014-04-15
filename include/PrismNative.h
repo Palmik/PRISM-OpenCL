@@ -33,14 +33,6 @@ JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetCompact
 
 /*
  * Class:     prism_PrismNative
- * Method:    PN_SetOpenCL
- * Signature: (Z)V
- */
-JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetOpenCL
-  (JNIEnv *, jclass, jboolean);
-
-/*
- * Class:     prism_PrismNative
  * Method:    PN_SetLinEqMethod
  * Signature: (I)V
  */

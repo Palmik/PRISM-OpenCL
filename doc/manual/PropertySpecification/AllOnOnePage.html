@@ -366,8 +366,7 @@ A simple example of this would be:
 </p>
 <p class='vspace'>Release (<code>a <strong>R</strong> b</code>),  which is equivalent to <code>!(!a U !b)</code>, informally means that <code>b</code> is true until <code>a</code> becomes true, or <code>b</code> is true forever.
 </p>
-<p class='vspace'><a name='bounded' id='bounded'></a>
-</p><h3>"Bounded" variants of path properties</h3>
+<div class='vspace'></div><h3>"Bounded" variants of path properties</h3>
 <p>All of the temporal operators given above, with the exception of <code><strong>X</strong></code>, have "bounded" variants, where an additional time bound is imposed on the property being satisfied.
 The most common case is to use an upper time bound, i.e. of the form "<code>&lt;=t</code>" or "<code>&lt;t</code>", where <code>t</code> is a PRISM expression evaluating to a constant, non-negative value.
 </p>
@@ -726,7 +725,7 @@ the rewards associated with the model correspond to power consumption, the prope
 <table border='1' cellpadding='5' ><tr ><td >&nbsp;</td><td  align='center'><code><strong>F</strong></code></td><td  align='center'><code><strong>C</strong>&lt;=t</code></td><td  align='left'><code><strong>I</strong>=t</code></td><td  align='right'><code><strong>S</strong></code></td></tr>
 <tr ><td  align='center'><strong>DTMCs</strong></td><td  align='center'>SMH</td><td  align='center'>SMH</td><td  align='center'>SMH</td><td  align='right'>SMH</td></tr>
 <tr ><td  align='center'><strong>CTMCs</strong></td><td  align='center'>SMH</td><td  align='center'>SMH</td><td  align='center'>SMH</td><td  align='right'>SMH</td></tr>
-<tr ><td  align='center'><strong>MDPs</strong></td><td  align='center'>SM-</td><td  align='center'>S--</td><td  align='center'>SM-</td><td  align='right'>n/a</td></tr>
+<tr ><td  align='center'><strong>MDPs</strong></td><td  align='center'>SM-</td><td  align='center'>---</td><td  align='center'>SM-</td><td  align='right'>n/a</td></tr>
 </table><hr />
 <h1>Non-Probabilistic Properties</h1>
 <p>PRISM also supports most operators from the temporal logic CTL [<a class='wikilink' href='../Main/References.html#CE81'>CE81</a>], of which the probabilistic logics PCTL and CSL are an extension. CTL uses the <code><strong>A</strong></code> (for all) and <code><strong>E</strong></code> (there exists) operators, instead of the probabilistic <code><strong>P</strong></code> operator, to ask whether all (or some) paths from a state satisfy a particular path formula.
