@@ -2,7 +2,7 @@
 #define PRISM_PS_FOX_GLYNN_OPENCL
 
 #define __CL_ENABLE_EXCEPTIONS
-#include <CL/cl.hpp>
+#include <CL/cl.h>
 #include "jnipointer.h"
 
 typedef cl_double cl_real;
