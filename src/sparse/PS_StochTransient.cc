@@ -29,11 +29,10 @@
 #include <math.h>
 #include <prism.h>
 #include "PS_FoxGlynn_OpenCL.h"
+#include <new>
 #include "sparse.h"
 #include "PrismSparseGlob.h"
 #include "jnipointer.h"
-#include <iostream>
-#include <new>
 #include <util.h>
 #include <cudd.h>
 #include <dd.h>
