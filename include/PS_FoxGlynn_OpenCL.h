@@ -53,11 +53,17 @@ class OpenCLKernel
     template <typename P>
     void cl_fill_buffer(cl_mem m, P pattern, size_t num, size_t offset = 0)
     {
+      // To be compatible with OpenCL < 1.2
+      std::vector<P> tmp(num, pattern);
+      cl_write_buffer(m, num, tmp.data());
+      /*
       cl_int err = 0;
       cl_event ev;
+
       err = clEnqueueFillBuffer(cl_queue_m, m, &pattern, sizeof(P), offset, num * sizeof(P), 0, 0, &ev); 
       err = clWaitForEvents(1, &ev);
       clReleaseEvent(ev);
+      */
     }
     
     template <typename T>
