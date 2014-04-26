@@ -53,9 +53,9 @@ void PS_FoxGlynn_OpenCL
   cl_device_id cl_device_id_m;
   cl_context cl_context_m;
 
-  err = clGetPlatformIDs(1, &cl_platform_id_m, NULL);
-  err = clGetDeviceIDs(cl_platform_id_m, CL_DEVICE_TYPE_GPU, 1, &cl_device_id_m, NULL);
-  cl_context_m = clCreateContext(0, 1, &cl_device_id_m, NULL, NULL, &err);
+  err = clGetPlatformIDs(1, &cl_platform_id_m, NULL); CLERR();
+  err = clGetDeviceIDs(cl_platform_id_m, CL_DEVICE_TYPE_GPU, 1, &cl_device_id_m, NULL); CLERR();
+  cl_context_m = clCreateContext(0, 1, &cl_device_id_m, NULL, NULL, &err); CLERR();
 
 #ifdef CL_FOX_GLYNN_NAIVE
   PS_FoxGlynn_OpenCLKernelNaive kernel

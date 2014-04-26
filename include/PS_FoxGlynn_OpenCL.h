@@ -6,6 +6,8 @@
 #include <vector>
 #include "jnipointer.h"
 
+#define CLERR() { if (err != CL_SUCCESS) { std::printf("%s:%d:%d OpenCL error %d\n", __FILE__, __LINE__, __func__, err); } }
+
 typedef cl_double cl_real;
 
 void PS_FoxGlynn_OpenCL
