@@ -8,7 +8,7 @@
 #include <iostream>
 
 #include <vector>
-#include <CL/cl.hpp>
+#include <CL/cl.h>
 
 #include <math.h>
 #include <prism.h>
