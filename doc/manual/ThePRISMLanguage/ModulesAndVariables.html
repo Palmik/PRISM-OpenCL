@@ -147,20 +147,7 @@ As will be described later, it is also possible to specify
   <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ThePRISMLanguage/ModulesAndVariables?action=sourceblock&amp;num=4' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
-<p class='vspace'>We also mention that, for a few kinds of model analysis (typically those based on simulation, such as <a class='wikilink' href='../RunningPRISM/ApproximateModelChecking.html'>approximate model checking</a> or <a class='wikilink' href='../ConfiguringPRISM/SolutionMethodsAndOptions.html#fau'>fast adaptive simulation</a>, it is also permissable to use integer variables with unbounded ranges, denoted as:
-</p>
-<div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock5'>
-  <div class='sourceblocktext'><div class="prism"><span class="prismident">x</span> : <span class="prismkeyword">int</span>;<br/>
-<span class="prismident">y</span> : <span class="prismkeyword">int</span> <span class="prismkeyword">init</span> <span class="prismnum">3</span>;<br/>
-</div></div>
-  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ThePRISMLanguage/ModulesAndVariables?action=sourceblock&amp;num=5' type='text/plain'>[&#036;[Get Code]]</a></div>
-</div>
-
-<p class='vspace'>Where the state space of the model remains finite, despite the presence of such unbounded variables, you can use the <a class='wikilink' href='../ConfiguringPRISM/ComputationEngines.html'>explicit engine</a> to build and analyse the model.
-</p>
-<div class='vspace'></div><h3>Identifiers</h3>
-<p>The names given to modules and variables are referred to as <em>identifiers</em>.
+<p class='vspace'>The names given to modules and variables are referred to as <em>identifiers</em>.
 Identifiers can be made up of letters, digits and the underscore character, but cannot begin with a digit,
 i.e. they must satisfy the regular expression [A-Za-z_][A-Za-z0-9_]*, and are case-sensitive.
 Furthermore, identifiers cannot be any of the following, which are all reserved keywords in PRISM:

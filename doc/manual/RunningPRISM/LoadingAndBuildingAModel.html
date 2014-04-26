@@ -98,7 +98,7 @@ a.varlink { text-decoration:none; }
 <div id='wikitext'>
 <p>Typically, when using PRISM, the first step is to load a model that has been specified in the PRISM modelling language. If using the GUI, select menu option "Model | Open Model" and choose a file. There are a selection of sample PRISM model files in the <code>examples</code> directory of the distribution.
 </p>
-<p class='vspace'>The model will then be displayed in the editor in the "Model" tab of the GUI window. The file is parsed upon loading. If there are no errors, information about the modules, variables, and other components of the model is displayed in the panel to the left and a green tick will be visible. If there are errors in the file, a red cross will appear instead and the errors will be highlighted in the model editor. To view details of the error, position the mouse pointer over the source of the error (or over the red cross). Alternatively, select menu option "Model | Parse Model" and the error mIessage will be displayed in a message box. Model descriptions can, of course, also be typed from scratch into the GUI's editor.
+<p class='vspace'>The model will then be displayed in the editor in the "Model" tab of the GUI window. The file is parsed upon loading. If there are no errors, information about the modules, variables, and other components of the model is displayed in the panel to the left and a green tick will be visible. If there are errors in the file, a red cross will appear instead and the errors will be highlighted in the model editor. To view details of the error, position the mouse pointer over the source of the error (or over the red cross). Alternatively, select menu option "Model | Parse Model" and the error message will be displayed in a message box. Model descriptions can, of course, also be typed from scratch into the GUI's editor.
 </p>
 <div class='vspace'></div><h3>Building the model</h3>
 <p>In order to perform model checking, PRISM will (in most cases) need to construct the corresponding probabilistic model, i.e. convert the PRISM model description to, for example, an MDP, DTMC or CTMC. During this process, PRISM computes the set of states in the model which are reachable from the initial states and the transition matrix which represents the model.
@@ -131,7 +131,7 @@ PRISM will display a warning message in the log when deadlocks are fixed in this
 </p>
 <p class='vspace'>If you have unwanted or unexpected deadlocks in your model, there are several ways you can detect then. Firstly, by disabling deadlock fixing (as described above), PRISM will display a list of deadlock states in the log. Alternatively, you can model check the <a class='wikilink' href='../PropertySpecification/Filters.html'>filter</a> property <code>filter(print, "deadlock")</code>, which has the safe effect.
 </p>
-<p class='vspace'>To find out <em>how</em> deadlocks occur, i.e. which paths through the model lead to a deadlock state, there are several possibilities. Firstly, you can model check the <a class='wikilink' href='../PropertySpecification/Non-probabilisticProperties.html'>CTL</a> property <code>E[F "deadlock"]</code>. When checked from the GUI, this will provide you with the option of display a path to a deadlock in the simulator. From the command-line, for example with:
+<p class='vspace'>To find out <em>how</em> deadlocks occur, i.e. which paths through the model lead to a deadlock state, there are several possibilities. Firstly, you can model check the <a class='wikilink' href='../PropertySpecification/Non-ProbabilisticProperties.html'>CTL</a> property <code>E[F "deadlock"]</code>. When checked from the GUI, this will provide you with the option of display a path to a deadlock in the simulator. From the command-line, for example with:
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock2'>
@@ -184,7 +184,6 @@ PRISM will display a warning message in the log when deadlocks are fixed in this
 </li><li><a class='wikilink' href='SupportForPEPAModels.html'>Support For PEPA Models</a>
 </li><li><a class='wikilink' href='SupportForSBML.html'>Support For SBML</a>
 </li><li><a class='wikilink' href='ExplicitModelImport.html'>Explicit Model Import</a>
-</li><li><a class='wikilink' href='ParametricModelChecking.html'>Parametric Model Checking</a>
 </li></ul><p>[ <a class='wikilink' href='AllOnOnePage.html'>View all</a> ]
 </p>
 

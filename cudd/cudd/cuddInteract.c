@@ -33,15 +33,14 @@
   only external references. The matrix is stored as a packed array of bits;
   since it is symmetric, only the upper triangle is kept in memory.
   As a final remark, we note that there may be variables that do
-  interact, but that for a given variable order have no arc connecting
-  their layers when they are adjacent.  For instance, in ite(a,b,c) with
-  the order a<b<c, b and c interact, but are not connected.]
+  intercat, but that for a given variable order have no arc connecting
+  their layers when they are adjacent.]
 
   SeeAlso     []
 
   Author      [Fabio Somenzi]
 
-  Copyright   [Copyright (c) 1995-2012, Regents of the University of Colorado
+  Copyright   [Copyright (c) 1995-2004, Regents of the University of Colorado
 
   All rights reserved.
 
@@ -105,7 +104,7 @@
 /*---------------------------------------------------------------------------*/
 
 #ifndef lint
-static char rcsid[] DD_UNUSED = "$Id: cuddInteract.c,v 1.14 2012/02/05 01:07:19 fabio Exp $";
+static char rcsid[] DD_UNUSED = "$Id: cuddInteract.c,v 1.12 2004/08/13 18:04:49 fabio Exp $";
 #endif
 
 /*---------------------------------------------------------------------------*/
@@ -119,9 +118,9 @@ static char rcsid[] DD_UNUSED = "$Id: cuddInteract.c,v 1.14 2012/02/05 01:07:19 
 /* Static function prototypes                                                */
 /*---------------------------------------------------------------------------*/
 
-static void ddSuppInteract (DdNode *f, char *support);
+static void ddSuppInteract (DdNode *f, int *support);
 static void ddClearLocal (DdNode *f);
-static void ddUpdateInteract (DdManager *table, char *support);
+static void ddUpdateInteract (DdManager *table, int *support);
 static void ddClearGlobal (DdManager *table);
 
 /**AutomaticEnd***************************************************************/
@@ -234,15 +233,15 @@ int
 cuddInitInteract(
   DdManager * table)
 {
-    int i,j;
-    unsigned long words;
+    int i,j,k;
+    int words;
     long *interact;
-    char *support;
+    int *support;
     DdNode *f;
     DdNode *sentinel = &(table->sentinel);
     DdNodePtr *nodelist;
     int slots;
-    unsigned long n = (unsigned long) table->size;
+    int n = table->size;
 
     words = ((n * (n-1)) >> (1 + LOGBPL)) + 1;
     table->interact = interact = ALLOC(long,words);
@@ -254,14 +253,11 @@ cuddInitInteract(
 	interact[i] = 0;
     }
 
-    support = ALLOC(char,n);
+    support = ALLOC(int,n);
     if (support == NULL) {
 	table->errorCode = CUDD_MEMORY_OUT;
 	FREE(interact);
 	return(0);
-    }
-    for (i = 0; i < n; i++) {
-        support[i] = 0;
     }
 
     for (i = 0; i < n; i++) {
@@ -277,6 +273,9 @@ cuddInitInteract(
 		** search from it.
 		*/
 		if (!Cudd_IsComplement(f->next)) {
+		    for (k = 0; k < n; k++) {
+			support[k] = 0;
+		    }
 		    ddSuppInteract(f,support);
 		    ddClearLocal(f);
 		    ddUpdateInteract(table,support);
@@ -313,7 +312,7 @@ cuddInitInteract(
 static void
 ddSuppInteract(
   DdNode * f,
-  char * support)
+  int * support)
 {
     if (cuddIsConstant(f) || Cudd_IsComplement(cuddT(f))) {
 	return;
@@ -365,7 +364,7 @@ ddClearLocal(
   Description [If support[i] == support[j] == 1, sets the (i,j) entry
   of the interaction matrix to 1.]
 
-  SideEffects [Clears support.]
+  SideEffects [None]
 
   SeeAlso     []
 
@@ -373,14 +372,13 @@ ddClearLocal(
 static void
 ddUpdateInteract(
   DdManager * table,
-  char * support)
+  int * support)
 {
     int i,j;
     int n = table->size;
 
     for (i = 0; i < n-1; i++) {
 	if (support[i] == 1) {
-            support[i] = 0;
 	    for (j = i+1; j < n; j++) {
 		if (support[j] == 1) {
 		    cuddSetInteract(table,i,j);
@@ -388,7 +386,6 @@ ddUpdateInteract(
 	    }
 	}
     }
-    support[n-1] = 0;
 
 } /* end of ddUpdateInteract */
 

@@ -66,18 +66,9 @@ endif
 ifneq (,$(findstring ia64, $(shell uname -m)))
 	ARCH = ia64
 endif
-# For Mac/Windows, we decide whether to build in 64-bit mode based on
+# For Macs, we decide whether to build in 64-bit mode based on
 # whether java is 32/64-bit (since these need to match)
 ifeq ($(OSTYPE),darwin)
-    JAVA_VERSION_STRING = $(shell java -version 2>&1)
-    ifneq (,$(findstring 64-bit, $(JAVA_VERSION_STRING)))
-        ARCH = x86_64
-    endif
-    ifneq (,$(findstring 64-Bit, $(JAVA_VERSION_STRING)))
-        ARCH = x86_64
-    endif
-endif
-ifeq ($(OSTYPE),cygwin)
     JAVA_VERSION_STRING = $(shell java -version 2>&1)
     ifneq (,$(findstring 64-bit, $(JAVA_VERSION_STRING)))
         ARCH = x86_64
@@ -200,23 +191,11 @@ ifeq ($(OSTYPE),solaris)
 endif
 # Cygwin
 ifeq ($(OSTYPE),cygwin)
-	ifeq ($(ARCH),x86_64)
-		C = /usr/bin/x86_64-w64-mingw32-gcc
-		CPP = /usr/bin/x86_64-w64-mingw32-g++
-		CUDD_XCFLAGS = -fPIC -DPIC -malign-double -DHAVE_IEEE_754 -DHAVE_GETRLIMIT=0 -DRLIMIT_DATA_DEFAULT=268435456 -DHAVE_SYS_RESOURCE_H=0 -DHAVE_SYS_WAIT_H=0 -DSIZEOF_VOID_P=8 -DSIZEOF_LONG=4 -fpermissive $(DEBUG) -static-libgcc -static-libstdc++
-		CFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
-		CPPFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
-		LDFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE) -Wl,--add-stdcall-alias
-		BINDISTSUFFIX = win64
-	else
-		C = /usr/bin/i686-w64-mingw32-gcc
-		CPP = /usr/bin/i686-w64-mingw32-g++
-		CUDD_XCFLAGS = -march=i686 -malign-double -DHAVE_IEEE_754 -DHAVE_GETRLIMIT=0 -DRLIMIT_DATA_DEFAULT=268435456 -DHAVE_SYS_RESOURCE_H=0 -DHAVE_SYS_WAIT_H=0 $(DEBUG) -static-libgcc -static-libstdc++
-		CFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
-		CPPFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
-		LDFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE) -Wl,--add-stdcall-alias
-		BINDISTSUFFIX = win32
-	endif
+	CUDD_XCFLAGS = -mno-cygwin -march=i686 -malign-double -DHAVE_IEEE_754 -DHAVE_GETRLIMIT=0 -DRLIMIT_DATA_DEFAULT=268435456 -DHAVE_SYS_RESOURCE_H=0 -DHAVE_SYS_WAIT_H=0 $(DEBUG)
+	CFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
+	CPPFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE)
+	LDFLAGS = $(CUDD_XCFLAGS) $(OPTIMISE) -Wl,--add-stdcall-alias
+	BINDISTSUFFIX = win
 	BIN_TARGETS=prism.cygwin xprism.linux prism.bat.win xprism.bat.win
 	JFLAGS = -encoding UTF8
 	JAVACC = javacc.bat
@@ -227,6 +206,10 @@ ifeq ($(OSTYPE),cygwin)
 	LIBSUFFIX = .dll
 	LIBMATH = 
 	CLASSPATHSEP = ;
+	# Also override default compilers
+	# (because -mno-cygwin flag no longer in new versions of gcc)
+	C = gcc-3
+	CPP = g++-3
 endif
 # Darwin
 ifeq ($(OSTYPE),darwin)
@@ -279,14 +262,14 @@ JAVA_JNI_H_DIR = $(shell \
 	if [ -f "$(JAVA_DIR)"/include/jni.h ]; then echo "$(JAVA_DIR)"/include; \
 	elif [ -f "$(JAVA_DIR)"/Headers/jni.h ]; then echo "$(JAVA_DIR)"/Headers; \
 	else echo ""; fi )
-JAVA_JNI_MD_H_DIR = $(shell (ls "$(JAVA_JNI_H_DIR)"/jni_md.h "$(JAVA_JNI_H_DIR)"/*/jni_md.h | head -n 1 | sed 's/\/jni_md.h//') 2>/dev/null)
+JAVA_JNI_MD_H_DIR = $(shell (ls "$(JAVA_JNI_H_DIR)"/jni_md.h "$(JAVA_JNI_H_DIR)"/*/jni_md.h | sed 's/\/jni_md.h//') 2>/dev/null)
 JAVA_INCLUDES = -I $(JAVA_JNI_H_DIR) -I $(JAVA_JNI_MD_H_DIR)
 
 #########################
 # Main part of Makefile #
 #########################
 
-MAKE_DIRS = dd jdd odd dv prism mtbdd sparse hybrid parser settings userinterface pepa/compiler simulator jltl2ba jltl2dstar explicit pta param strat
+MAKE_DIRS = dd jdd odd dv prism mtbdd sparse hybrid parser settings userinterface pepa/compiler simulator jltl2ba jltl2dstar explicit pta
 
 EXT_PACKAGES = lpsolve55 lp_solve_5.5_java
 
@@ -302,7 +285,7 @@ cuddpackage: checks
 	@(if [ ! -h $(CUDD_DIR) ]; then \
 	  echo Making cudd ...; \
 	  cd $(CUDD_DIR) && \
-	  $(MAKE) C="$(C)" CC="$(C)" CPP="$(CPP)" CXX="$(CPP)" \
+	  $(MAKE) C="$(C)" CC="$(C)" CPP="$(CPP)" \
 	  XCFLAGS="$(CUDD_XCFLAGS)"; \
 	else \
 	  echo Skipping cudd make since it is a symlink...; \
@@ -332,7 +315,6 @@ extpackages: checks
 	  LIBPREFIX="$(LIBPREFIX)" \
 	  LIBSUFFIX="$(LIBSUFFIX)" \
 	  LIBMATH="$(LIBMATH)" \
-	  BINDISTSUFFIX="$(BINDISTSUFFIX)" \
 	  JAVA_DIR="$(JAVA_DIR)" \
 	  ) || exit 1; \
 	done
@@ -552,10 +534,6 @@ clean_explicit: checks
 	@(cd src/explicit && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
 clean_pta: checks
 	@(cd src/pta && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
-clean_param: checks
-	@(cd src/param && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
-clean_strat: checks
-	@(cd src/strat && $(MAKE) -s SRC_DIR="$(SRC_DIR)" CLASSES_DIR="$(CLASSES_DIR)" OBJ_DIR="$(OBJ_DIR)" LIB_DIR="$(LIB_DIR)" EXE="$(EXE)" LIBPREFIX="$(LIBPREFIX)" LIBSUFFIX="$(LIBSUFFIX)" clean)
 
 checks:
 	@(if [ "$(OSTYPE)" != "linux" -a "$(OSTYPE)" != "solaris" -a "$(OSTYPE)" != "cygwin" -a "$(OSTYPE)" != "darwin" ]; then \

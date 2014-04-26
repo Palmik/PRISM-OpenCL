@@ -241,20 +241,7 @@ As will be described later, it is also possible to specify
   <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ThePRISMLanguage/AllOnOnePage?action=sourceblock&amp;num=6' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
-<p class='vspace'>We also mention that, for a few kinds of model analysis (typically those based on simulation, such as <a class='wikilink' href='../RunningPRISM/ApproximateModelChecking.html'>approximate model checking</a> or <a class='wikilink' href='../ConfiguringPRISM/SolutionMethodsAndOptions.html#fau'>fast adaptive simulation</a>, it is also permissable to use integer variables with unbounded ranges, denoted as:
-</p>
-<div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock7'>
-  <div class='sourceblocktext'><div class="prism"><span class="prismident">x</span> : <span class="prismkeyword">int</span>;<br/>
-<span class="prismident">y</span> : <span class="prismkeyword">int</span> <span class="prismkeyword">init</span> <span class="prismnum">3</span>;<br/>
-</div></div>
-  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ThePRISMLanguage/AllOnOnePage?action=sourceblock&amp;num=7' type='text/plain'>[&#036;[Get Code]]</a></div>
-</div>
-
-<p class='vspace'>Where the state space of the model remains finite, despite the presence of such unbounded variables, you can use the <a class='wikilink' href='../ConfiguringPRISM/ComputationEngines.html'>explicit engine</a> to build and analyse the model.
-</p>
-<div class='vspace'></div><h3>Identifiers</h3>
-<p>The names given to modules and variables are referred to as <em>identifiers</em>.
+<p class='vspace'>The names given to modules and variables are referred to as <em>identifiers</em>.
 Identifiers can be made up of letters, digits and the underscore character, but cannot begin with a digit,
 i.e. they must satisfy the regular expression [A-Za-z_][A-Za-z0-9_]*, and are case-sensitive.
 Furthermore, identifiers cannot be any of the following, which are all reserved keywords in PRISM:
@@ -266,10 +253,10 @@ comprising a <em>guard</em> and one or more <em>updates</em>.
 The first command of module <code>M1</code> in our <a class='wikilink' href='Example1.html'>example</a> is:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock8'>
+<div class='sourceblock ' id='sourceblock7'>
   <div class='sourceblocktext'><div class="prism">[] <span class="prismident">x</span>=<span class="prismnum">0</span> -&gt; <span class="prismnum">0.8</span>:(<span class="prismident">x</span>'=<span class="prismnum">0</span>) + <span class="prismnum">0.2</span>:(<span class="prismident">x</span>'=<span class="prismnum">1</span>);<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ThePRISMLanguage/AllOnOnePage?action=sourceblock&amp;num=8' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ThePRISMLanguage/AllOnOnePage?action=sourceblock&amp;num=7' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>The guard <code>x=0</code> indicates that this describes the behaviour of the module when the variable <code>x</code> has value 0.
@@ -282,10 +269,10 @@ Note also that PRISM will complain if the probabilities on the right hand side o
 <p class='vspace'>The second command:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock9'>
+<div class='sourceblock ' id='sourceblock8'>
   <div class='sourceblocktext'><div class="prism">[] <span class="prismident">x</span>=<span class="prismnum">1</span> &amp; <span class="prismident">y</span>!=<span class="prismnum">2</span> -&gt; (<span class="prismident">x</span>'=<span class="prismnum">2</span>);<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ThePRISMLanguage/AllOnOnePage?action=sourceblock&amp;num=9' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ThePRISMLanguage/AllOnOnePage?action=sourceblock&amp;num=8' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>illustrates that guards can contain constraints on any variable, not just the ones in that module,
@@ -299,10 +286,10 @@ as is done in the example above.
 For example, if it had two variables <code>x1</code> and <code>x2</code>, a possible command would be:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock10'>
+<div class='sourceblock ' id='sourceblock9'>
   <div class='sourceblocktext'><div class="prism">[] <span class="prismident">x1</span>=<span class="prismnum">0</span> &amp; <span class="prismident">x2</span>&gt;<span class="prismnum">0</span> &amp; <span class="prismident">x2</span>&lt;<span class="prismnum">10</span> -&gt; <span class="prismnum">0.5</span>:(<span class="prismident">x1</span>'=<span class="prismnum">1</span>)&amp;(<span class="prismident">x2</span>'=<span class="prismident">x2</span>+<span class="prismnum">1</span>) + <span class="prismnum">0.5</span>:(<span class="prismident">x1</span>'=<span class="prismnum">2</span>)&amp;(<span class="prismident">x2</span>'=<span class="prismident">x2</span>-<span class="prismnum">1</span>);<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ThePRISMLanguage/AllOnOnePage?action=sourceblock&amp;num=10' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ThePRISMLanguage/AllOnOnePage?action=sourceblock&amp;num=9' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>Notice that elements of the updates are concatenated with <code>&amp;</code> and that each element must be bracketed individually.
@@ -310,21 +297,21 @@ If an update does not give a new value for a local variable, it is assumed not t
 As a special case, the keyword <code><strong>true</strong></code> can be used to denote an update where no variable's value changes, i.e. the following are all equivalent:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock11'>
+<div class='sourceblock ' id='sourceblock10'>
   <div class='sourceblocktext'><div class="prism">[] <span class="prismident">x1</span>&gt;<span class="prismnum">10</span> | <span class="prismident">x2</span>&gt;<span class="prismnum">10</span> -&gt; (<span class="prismident">x1</span>'=<span class="prismident">x1</span>)&amp;(<span class="prismident">x2</span>'=<span class="prismident">x2</span>);<br/>
 [] <span class="prismident">x1</span>&gt;<span class="prismnum">10</span> | <span class="prismident">x2</span>&gt;<span class="prismnum">10</span> -&gt; (<span class="prismident">x1</span>'=<span class="prismident">x1</span>);<br/>
 [] <span class="prismident">x1</span>&gt;<span class="prismnum">10</span> | <span class="prismident">x2</span>&gt;<span class="prismnum">10</span> -&gt; <span class="prismkeyword">true</span>;<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ThePRISMLanguage/AllOnOnePage?action=sourceblock&amp;num=11' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ThePRISMLanguage/AllOnOnePage?action=sourceblock&amp;num=10' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>Finally, it is important to remember that the expressions on the right hand side of each update refer to the state of the model <em>before</em> the update occurs. So, for example, this command:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock12'>
+<div class='sourceblock ' id='sourceblock11'>
   <div class='sourceblocktext'><div class="prism">[] <span class="prismident">x1</span>=<span class="prismnum">0</span> &amp; <span class="prismident">x2</span>=<span class="prismnum">1</span> -&gt; (<span class="prismident">x1</span>'=<span class="prismnum">2</span>)&amp;(<span class="prismident">x2</span>'=<span class="prismident">x1</span>)<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ThePRISMLanguage/AllOnOnePage?action=sourceblock&amp;num=12' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ThePRISMLanguage/AllOnOnePage?action=sourceblock&amp;num=11' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>updates variable <code>x2</code> to 0, not 2.
@@ -336,17 +323,17 @@ As a special case, the keyword <code><strong>true</strong></code> can be used to
 <p class='vspace'>For an MDP, as in <a class='wikilink' href='Example1.html'>Example 1</a>, the choice is <em>nondeterministic</em>. By way of example, consider state <code>(0,0)</code> (i.e.  <code>x=0</code> and <code>y=0</code>). There are two commands enabled, one from each module:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock13'>
+<div class='sourceblock ' id='sourceblock12'>
   <div class='sourceblocktext'><div class="prism">[] <span class="prismident">x</span>=<span class="prismnum">0</span> -&gt; <span class="prismnum">0.8</span>:(<span class="prismident">x</span>'=<span class="prismnum">0</span>) + <span class="prismnum">0.2</span>:(<span class="prismident">x</span>'=<span class="prismnum">1</span>);<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ThePRISMLanguage/AllOnOnePage?action=sourceblock&amp;num=13' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ThePRISMLanguage/AllOnOnePage?action=sourceblock&amp;num=12' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock14'>
+<div class='sourceblock ' id='sourceblock13'>
   <div class='sourceblocktext'><div class="prism">[] <span class="prismident">y</span>=<span class="prismnum">0</span> -&gt; <span class="prismnum">0.8</span>:(<span class="prismident">y</span>'=<span class="prismnum">0</span>) + <span class="prismnum">0.2</span>:(<span class="prismident">y</span>'=<span class="prismnum">1</span>);<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ThePRISMLanguage/AllOnOnePage?action=sourceblock&amp;num=14' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ThePRISMLanguage/AllOnOnePage?action=sourceblock&amp;num=13' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>In state <code>(0,0)</code> of the MDP, there would be a nondeterministic choice between these two probability distributions:
@@ -369,20 +356,20 @@ which allows the modules themselves to make nondeterministic choices.
 In <a class='wikilink' href='Example1.html'>Example 1</a>, we can make the probabilistic choice in the first state of module <code>M1</code> nondeterministic by replacing the command:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock15'>
+<div class='sourceblock ' id='sourceblock14'>
   <div class='sourceblocktext'><div class="prism">[] <span class="prismident">x</span>=<span class="prismnum">0</span> -&gt; <span class="prismnum">0.8</span>:(<span class="prismident">x</span>'=<span class="prismnum">0</span>) + <span class="prismnum">0.2</span>:(<span class="prismident">x</span>'=<span class="prismnum">1</span>);<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ThePRISMLanguage/AllOnOnePage?action=sourceblock&amp;num=15' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ThePRISMLanguage/AllOnOnePage?action=sourceblock&amp;num=14' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>with the commands:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock16'>
+<div class='sourceblock ' id='sourceblock15'>
   <div class='sourceblocktext'><div class="prism">[] <span class="prismident">x</span>=<span class="prismnum">0</span> -&gt; (<span class="prismident">x</span>'=<span class="prismnum">0</span>);<br/>
 [] <span class="prismident">x</span>=<span class="prismnum">0</span> -&gt; (<span class="prismident">x</span>'=<span class="prismnum">1</span>);<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ThePRISMLanguage/AllOnOnePage?action=sourceblock&amp;num=16' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ThePRISMLanguage/AllOnOnePage?action=sourceblock&amp;num=15' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>Assuming we do the same for module <code>M2</code>, in state <code>(0,0)</code> of the MDP
@@ -409,10 +396,10 @@ The notation used in commands, however, to associate rates to transitions is ide
 the one used to assign probabilities:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock17'>
+<div class='sourceblock ' id='sourceblock16'>
   <div class='sourceblocktext'><div class="prism"><span class="prismident">rate_1</span>:<span class="prismident">update_1</span> + <span class="prismident">rate_2</span>:<span class="prismident">update_2</span> + ...<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ThePRISMLanguage/AllOnOnePage?action=sourceblock&amp;num=17' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ThePRISMLanguage/AllOnOnePage?action=sourceblock&amp;num=16' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>In a CTMC, when multiple possible transitions are available in a state, a <em>race condition</em> occurs
@@ -421,18 +408,18 @@ In terms of PRISM commands, this can arise in several ways.
 Firstly, within in a module, multiple transitions can be specified either as several different updates in a command, or as multiple commands with overlapping guards. The following, for example. are equivalent:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock18'>
+<div class='sourceblock ' id='sourceblock17'>
   <div class='sourceblocktext'><div class="prism">[] <span class="prismident">x</span>=<span class="prismnum">0</span> -&gt; <span class="prismnum">50</span>:(<span class="prismident">x</span>'=<span class="prismnum">1</span>) + <span class="prismnum">60</span>:(<span class="prismident">x</span>'=<span class="prismnum">2</span>);<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ThePRISMLanguage/AllOnOnePage?action=sourceblock&amp;num=18' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ThePRISMLanguage/AllOnOnePage?action=sourceblock&amp;num=17' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock19'>
+<div class='sourceblock ' id='sourceblock18'>
   <div class='sourceblocktext'><div class="prism">[] <span class="prismident">x</span>=<span class="prismnum">0</span> -&gt; <span class="prismnum">50</span>:(<span class="prismident">x</span>'=<span class="prismnum">1</span>);<br/>
 [] <span class="prismident">x</span>=<span class="prismnum">0</span> -&gt; <span class="prismnum">60</span>:(<span class="prismident">x</span>'=<span class="prismnum">2</span>);<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ThePRISMLanguage/AllOnOnePage?action=sourceblock&amp;num=19' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ThePRISMLanguage/AllOnOnePage?action=sourceblock&amp;num=18' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>Furthermore, parallel composition between modules in a CTMC is modelled as a race condition,
@@ -444,7 +431,7 @@ a server which removes jobs from the queue and processes them.
 The PRISM code is as follows:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock20'>
+<div class='sourceblock ' id='sourceblock19'>
   <div class='sourceblocktext'><div class="prism"><span class="prismcomment">// Example 2</span><br/>
 <span class="prismcomment">// N-place queue + server</span><br/>
 <br/>
@@ -470,7 +457,7 @@ The PRISM code is as follows:
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[] <span class="prismident">s</span>=<span class="prismnum">1</span> -&gt; <span class="prismident">gamma</span>:(<span class="prismident">s</span>'=<span class="prismnum">0</span>);<br/>
 <span class="prismkeyword">endmodule</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ThePRISMLanguage/AllOnOnePage?action=sourceblock&amp;num=20' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ThePRISMLanguage/AllOnOnePage?action=sourceblock&amp;num=19' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'  style='text-align: center;'><strong>The PRISM Language: Example 2</strong>
@@ -486,13 +473,13 @@ and can be defined using literal values or as constant expressions (including in
 keyword. For example:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock21'>
+<div class='sourceblock ' id='sourceblock20'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">const</span> <span class="prismkeyword">int</span> <span class="prismident">radius</span> = <span class="prismnum">12</span>;<br/>
 <span class="prismkeyword">const</span> <span class="prismkeyword">double</span> <span class="prismident">pi</span> = <span class="prismnum">3.141592</span>;<br/>
 <span class="prismkeyword">const</span> <span class="prismkeyword">double</span> <span class="prismident">area</span> = <span class="prismident">pi</span> * <span class="prismident">radius</span> * <span class="prismident">radius</span>;<br/>
 <span class="prismkeyword">const</span> <span class="prismkeyword">bool</span> <span class="prismident">yes</span> = <span class="prismkeyword">true</span>;<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ThePRISMLanguage/AllOnOnePage?action=sourceblock&amp;num=21' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ThePRISMLanguage/AllOnOnePage?action=sourceblock&amp;num=20' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>The identifiers used for their names are subject to the same rules as <a class='wikilink' href='ModulesAndVariables.html'>variables</a>.
@@ -547,7 +534,7 @@ All expressions must evaluate correctly in terms of type (integer, double or Boo
 </li></ul><p class='vspace'>Examples of their usage are:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock22'>
+<div class='sourceblock ' id='sourceblock21'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">min</span>(<span class="prismident">x</span>+<span class="prismnum">1</span>, <span class="prismident">x_max</span>)<br/>
 <span class="prismkeyword">max</span>(<span class="prismident">a</span>,<span class="prismident">b</span>,<span class="prismident">c</span>)<br/>
 <span class="prismident">floor</span>(<span class="prismnum">13.5</span>)<br/>
@@ -557,7 +544,7 @@ All expressions must evaluate correctly in terms of type (integer, double or Boo
 <span class="prismident">mod</span>(<span class="prismnum">1977</span>, <span class="prismnum">100</span>)<br/>
 <span class="prismident">log</span>(<span class="prismnum">123</span>, <span class="prismnum">2.71828183</span>)<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ThePRISMLanguage/AllOnOnePage?action=sourceblock&amp;num=22' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ThePRISMLanguage/AllOnOnePage?action=sourceblock&amp;num=21' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>For compatibility with older versions of PRISM, all functions can also be expressed via the <code><strong>func</strong></code> keyword, e.g. <code>func(floor, 13.5)</code>.
@@ -574,10 +561,10 @@ All expressions must evaluate correctly in terms of type (integer, double or Boo
 </li></ul><p class='vspace'>This allows, for example, the probability in a command to be dependent on the current state:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock23'>
+<div class='sourceblock ' id='sourceblock22'>
   <div class='sourceblocktext'><div class="prism">[] (<span class="prismident">x</span>&gt;=<span class="prismnum">1</span> &amp; <span class="prismident">x</span>&lt;=<span class="prismnum">10</span>) -&gt; <span class="prismident">x</span>/<span class="prismnum">10</span> : (<span class="prismident">x</span>'=<span class="prismkeyword">max</span>(<span class="prismnum">1</span>,<span class="prismident">x</span>-<span class="prismnum">1</span>)) + <span class="prismnum">1</span>-<span class="prismident">x</span>/<span class="prismnum">10</span> : (<span class="prismident">x</span>'=<span class="prismkeyword">min</span>(<span class="prismnum">10</span>,<span class="prismident">x</span>+<span class="prismnum">1</span>))<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ThePRISMLanguage/AllOnOnePage?action=sourceblock&amp;num=23' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ThePRISMLanguage/AllOnOnePage?action=sourceblock&amp;num=22' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <hr />
@@ -588,10 +575,10 @@ These are placed inside the square brackets which mark the start of the command,
 for example <code>serve</code> in this command from <a class='wikilink' href='Example2.html'>Example 2</a>:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock24'>
+<div class='sourceblock ' id='sourceblock23'>
   <div class='sourceblocktext'><div class="prism">[<span class="prismident">serve</span>] <span class="prismident">q</span>&gt;<span class="prismnum">0</span> -&gt; <span class="prismident">lambda</span>:(<span class="prismident">q</span>'=<span class="prismident">q</span>-<span class="prismnum">1</span>);<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ThePRISMLanguage/AllOnOnePage?action=sourceblock&amp;num=24' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ThePRISMLanguage/AllOnOnePage?action=sourceblock&amp;num=23' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>These actions can be used to force two or more modules to make transitions simultaneously
@@ -612,10 +599,10 @@ By default, all modules are combined using the standard CSP parallel composition
 In <a class='wikilink' href='Example1.html'>Example 1</a>, module <code>M2</code> is identical to module <code>M1</code> so we can in fact replace its entire definition with:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock25'>
+<div class='sourceblock ' id='sourceblock24'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">module</span> <span class="prismident">M2</span> = <span class="prismident">M1</span> [ <span class="prismident">x</span>=<span class="prismident">y</span>, <span class="prismident">y</span>=<span class="prismident">x</span> ] <span class="prismkeyword">endmodule</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ThePRISMLanguage/AllOnOnePage?action=sourceblock&amp;num=25' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ThePRISMLanguage/AllOnOnePage?action=sourceblock&amp;num=24' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>All of the variables in the module being renamed (in this case, just <code>x</code>) <em>must</em> be renamed to new, unused names. Optionally, it is also possible to rename other aspects of the module definition. In fact, the renaming is done at a textual level, so any identifiers (including <a class='wikilink' href='Synchronisation.html'>action labels</a>, <a class='wikilink' href='Constants.html'>constants</a> and <a class='wikilink' href='Expressions.html'>functions</a>) used in the module definition can be changed in this way.
@@ -640,20 +627,20 @@ If we remove the <code><strong>init</strong> 0</code> part of both variable decl
 and add the following to the end of the file:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock26'>
+<div class='sourceblock ' id='sourceblock25'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">init</span> <span class="prismident">x</span>=<span class="prismnum">0</span> <span class="prismkeyword">endinit</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ThePRISMLanguage/AllOnOnePage?action=sourceblock&amp;num=26' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ThePRISMLanguage/AllOnOnePage?action=sourceblock&amp;num=25' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>there will be three initial states: <code>(0,0)</code>, <code>(0,1)</code> and <code>(0,2)</code>.
 Similarly, we could instead add:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock27'>
+<div class='sourceblock ' id='sourceblock26'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">init</span> <span class="prismident">x</span>+<span class="prismident">y</span>=<span class="prismnum">1</span> <span class="prismkeyword">endinit</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ThePRISMLanguage/AllOnOnePage?action=sourceblock&amp;num=27' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ThePRISMLanguage/AllOnOnePage?action=sourceblock&amp;num=26' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>in which case there would be two initial states: <code>(0,1)</code> and <code>(1,0)</code>.
@@ -667,11 +654,11 @@ except that the declaration must not be inside the definition of any module.
 Some example declarations are as follows:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock28'>
+<div class='sourceblock ' id='sourceblock27'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">global</span> <span class="prismident">g</span> : [<span class="prismnum">1</span>..<span class="prismnum">10</span>];<br/>
 <span class="prismkeyword">global</span> <span class="prismident">b</span> : <span class="prismkeyword">bool</span> <span class="prismkeyword">init</span> <span class="prismkeyword">true</span>;<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ThePRISMLanguage/AllOnOnePage?action=sourceblock&amp;num=28' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ThePRISMLanguage/AllOnOnePage?action=sourceblock&amp;num=27' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>A global variable can be modified by any module and provides another way for modules to interact.
@@ -686,28 +673,28 @@ The formula name can then be used as shorthand for the expression anywhere an ex
 A formula is defined as follows:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock29'>
+<div class='sourceblock ' id='sourceblock28'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">formula</span> <span class="prismident">num_tokens</span> = <span class="prismident">q1</span>+<span class="prismident">q2</span>+<span class="prismident">q3</span>+<span class="prismident">q</span>+<span class="prismident">q5</span>;<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ThePRISMLanguage/AllOnOnePage?action=sourceblock&amp;num=29' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ThePRISMLanguage/AllOnOnePage?action=sourceblock&amp;num=28' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>It can then be used anywhere within that file, as for example in this command:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock30'>
+<div class='sourceblock ' id='sourceblock29'>
   <div class='sourceblocktext'><div class="prism">[] <span class="prismident">p1</span>=<span class="prismnum">2</span> &amp; <span class="prismident">num_tokens</span>=<span class="prismnum">5</span> -&gt; (<span class="prismident">p1</span>'=<span class="prismnum">4</span>);<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ThePRISMLanguage/AllOnOnePage?action=sourceblock&amp;num=30' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ThePRISMLanguage/AllOnOnePage?action=sourceblock&amp;num=29' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>The effect is exactly as if the following had been typed:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock31'>
+<div class='sourceblock ' id='sourceblock30'>
   <div class='sourceblocktext'><div class="prism">[] <span class="prismident">p1</span>=<span class="prismnum">2</span> &amp; (<span class="prismident">q1</span>+<span class="prismident">q2</span>+<span class="prismident">q3</span>+<span class="prismident">q</span>+<span class="prismident">q5</span>)=<span class="prismnum">5</span> -&gt; (<span class="prismident">p1</span>'=<span class="prismnum">4</span>);<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ThePRISMLanguage/AllOnOnePage?action=sourceblock&amp;num=31' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ThePRISMLanguage/AllOnOnePage?action=sourceblock&amp;num=30' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>Formulas defined in a model can also be used when specifying its properties.
@@ -722,17 +709,17 @@ A formula is defined as follows:
 secondly, they are written using quotation marks (<code>"..."</code>), as illustrated in the following example:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock32'>
+<div class='sourceblock ' id='sourceblock31'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">label</span> "<span class="prismident">safe</span>" = <span class="prismident">temp</span>&lt;=<span class="prismnum">100</span> | <span class="prismident">alarm</span>=<span class="prismkeyword">true</span>;<br/>
 <span class="prismkeyword">label</span> "<span class="prismident">fail</span>" = <span class="prismident">temp</span>&gt;<span class="prismnum">100</span> &amp; <span class="prismident">alarm</span>=<span class="prismkeyword">false</span>;<br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ThePRISMLanguage/AllOnOnePage?action=sourceblock&amp;num=32' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ThePRISMLanguage/AllOnOnePage?action=sourceblock&amp;num=31' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <hr />
 <h1>PTAs</h1>
 <p class='vspace'>So far in this section, we have mainly focused on three types of models: DTMCs, MDPs and CTMCs.
-PRISM also supports a fourth: <em>probabilistic timed automata</em> (PTAs), which extend MDPs with the ability to model real-time behaviour. This is done in the style of <em>timed automata</em> [<a class='wikilink' href='../Main/References.html#AD94'>AD94</a>], by adding real-valued <em>clocks</em> which increase with time and can be reset. For background material on PTAs, see for example [<a class='wikilink' href='../Main/References.html#NPS13'>NPS13</a>].
+PRISM also supports a fourth: <em>probabilistic timed automata</em> (PTAs), which extend MDPs with the ability to model real-time behaviour. This is done in the style of <em>timed automata</em> [<a class='wikilink' href='../Main/References.html#AD94'>AD94</a>], by adding real-valued <em>clocks</em> which increase with time and can be reset. For background material on PTAs, see for example [<a class='wikilink' href='../Main/References.html#NPS12'>NPS12</a>].
 You can also find several example PTA models included in the PRISM distribution. Look in the <code>examples/pta</code> directory.
 </p>
 <p class='vspace'>Before describing how PTA features are incorporated into the PRISM modelling language, we give a simple example. Here is a small PTA:
@@ -741,7 +728,7 @@ You can also find several example PTA models included in the PRISM distribution.
 <p class='vspace'>and here is a corresponding PRISM model:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock33'>
+<div class='sourceblock ' id='sourceblock32'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">pta</span><br/>
 <br/>
 <span class="prismkeyword">module</span> <span class="prismident">M</span><br/>
@@ -759,7 +746,7 @@ You can also find several example PTA models included in the PRISM distribution.
 <br/>
 <span class="prismkeyword">endmodule</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ThePRISMLanguage/AllOnOnePage?action=sourceblock&amp;num=33' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ThePRISMLanguage/AllOnOnePage?action=sourceblock&amp;num=32' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>For modelling PTAs in PRISM, there is a new datatype, <strong><code>clock</code></strong>, used for variables that are clocks. These must be local to a particular module, not global. Other types of PRISM variables can be defined in the usual way. In the example above, we use just a single integer variable <code>s</code> to represent the locations of the PTAs.
@@ -813,12 +800,12 @@ These constructs contains one or more <em>reward items</em>.
 Consider the following simple example:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock34'>
+<div class='sourceblock ' id='sourceblock33'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">rewards</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="prismkeyword">true</span> : <span class="prismnum">1</span>;<br/>
 <span class="prismkeyword">endrewards</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ThePRISMLanguage/AllOnOnePage?action=sourceblock&amp;num=34' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ThePRISMLanguage/AllOnOnePage?action=sourceblock&amp;num=33' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>This assigns a reward of 1 to every state of the model.
@@ -832,14 +819,14 @@ and <code>reward</code> is an expression (containing any variables, constants, e
 For example:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock35'>
+<div class='sourceblock ' id='sourceblock34'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">rewards</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="prismident">x</span>=<span class="prismnum">0</span> : <span class="prismnum">100</span>;<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="prismident">x</span>&gt;<span class="prismnum">0</span> &amp; <span class="prismident">x</span>&lt;<span class="prismnum">10</span> : <span class="prismnum">2</span>*<span class="prismident">x</span>;<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="prismident">x</span>=<span class="prismnum">10</span> : <span class="prismnum">100</span>;<br/>
 <span class="prismkeyword">endrewards</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ThePRISMLanguage/AllOnOnePage?action=sourceblock&amp;num=35' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ThePRISMLanguage/AllOnOnePage?action=sourceblock&amp;num=34' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>assigns a reward of 100 to states satisfying <code>x=0</code> or <code>x=10</code>
@@ -859,14 +846,14 @@ and are labelled with the action <code>action</code> acquire the reward <code>re
 For example:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock36'>
+<div class='sourceblock ' id='sourceblock35'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">rewards</span><br/>
 &nbsp;&nbsp;&nbsp;&nbsp;[] <span class="prismkeyword">true</span> : <span class="prismnum">1</span>;<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;[<span class="prismident">a</span>] <span class="prismkeyword">true</span> : <span class="prismident">x</span>;<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;[<span class="prismident">b</span>] <span class="prismkeyword">true</span> : <span class="prismnum">2</span>*<span class="prismident">x</span>;<br/>
 <span class="prismkeyword">endrewards</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ThePRISMLanguage/AllOnOnePage?action=sourceblock&amp;num=36' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ThePRISMLanguage/AllOnOnePage?action=sourceblock&amp;num=35' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>assigns a reward of 1 to all transitions in the model with no action label,
@@ -880,7 +867,7 @@ These are all placed together in a single <code><strong>rewards</strong>...<stro
 <p class='vspace'>A PRISM model can have multiple reward structures. Optionally, these can be given labels such as in the following example:
 </p>
 <div class='vspace'></div>
-<div class='sourceblock ' id='sourceblock37'>
+<div class='sourceblock ' id='sourceblock36'>
   <div class='sourceblocktext'><div class="prism"><span class="prismkeyword">rewards</span> "<span class="prismident">total_time</span>"<br/>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="prismkeyword">true</span> : <span class="prismnum">1</span>;<br/>
 <span class="prismkeyword">endrewards</span><br/>
@@ -889,7 +876,7 @@ These are all placed together in a single <code><strong>rewards</strong>...<stro
 &nbsp;&nbsp;&nbsp;&nbsp;[<span class="prismident">fail</span>] <span class="prismkeyword">true</span> : <span class="prismnum">1</span>;<br/>
 <span class="prismkeyword">endrewards</span><br/>
 </div></div>
-  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ThePRISMLanguage/AllOnOnePage?action=sourceblock&amp;num=37' type='text/plain'>[&#036;[Get Code]]</a></div>
+  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ThePRISMLanguage/AllOnOnePage?action=sourceblock&amp;num=36' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <div class='vspace'></div><hr />
