@@ -87,6 +87,8 @@ EXPORT extern double term_crit_param;
 EXPORT extern int max_iters;
 // use "compact modified" sparse matrix storage?
 EXPORT extern bool compact;
+// use OpenCL implementation when possible? Other associated options
+EXPORT extern bool opencl;
 // sparse bits info
 EXPORT extern int sb_max_mem;
 EXPORT extern int num_sb_levels;
