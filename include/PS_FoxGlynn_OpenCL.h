@@ -3,6 +3,7 @@
 
 #define __CL_ENABLE_EXCEPTIONS
 #include <CL/cl.h>
+#include <vector>
 #include "jnipointer.h"
 
 typedef cl_double cl_real;
