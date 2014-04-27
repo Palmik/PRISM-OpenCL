@@ -178,7 +178,11 @@ PS_FoxGlynn_OpenCLKernel::PS_FoxGlynn_OpenCLKernel
   cl_int err = 0;
 
   // Compute the MSC full-warp representation.
-  cl_uint warp_size = 64;
+  cl_uint warp_size = opencl_warp_size;
+  if (warp_size == 0)
+  {
+    warp_size == 64;
+  }
 
   std::vector<cl_real> fw_non_zero;
   fw_non_zero.reserve(msc_non_zero_size);
