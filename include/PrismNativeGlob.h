@@ -89,7 +89,7 @@ EXPORT extern int max_iters;
 EXPORT extern bool compact;
 // use OpenCL implementation when possible? Other associated options
 EXPORT extern bool opencl;
-EXPORT extern bool opencl_warp_size;
+EXPORT extern int opencl_warp_size;
 // sparse bits info
 EXPORT extern int sb_max_mem;
 EXPORT extern int num_sb_levels;

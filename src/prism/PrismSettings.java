@@ -241,7 +241,7 @@ public class PrismSettings implements Observer
 																			"Maximum number of iterations to perform if iterative methods do not converge." },
 			// OPENCL OPTIONS
       { BOOLEAN_TYPE,		PRISM_OPENCL_ENABLED,					"Use OpenCL",				 	"4.1",			new Boolean(false),															"", "Whether the OpenCL implementation is enabled" },																							
-      { INTEGER_TYPE,		PRISM_OPENCL_WARP_SIZE,				"Set warp-size",		 	"4.1",			new Integer(0),   															"", "The warp-size assumed by the OpenCL based algorithms." },																							
+      { INTEGER_TYPE,		PRISM_OPENCL_WARP_SIZE,				"Set warp-size",		 	"4.1",			new Integer(0),   															"0", "The warp-size assumed by the OpenCL based algorithms." },																							
 			// MODEL CHECKING OPTIONS:
 			{ BOOLEAN_TYPE,		PRISM_PRECOMPUTATION,					"Use precomputation",					"2.1",			new Boolean(true),															"",																							
 																			"Whether to use model checking precomputation algorithms (Prob0, Prob1, etc.), where optional." },
@@ -1112,7 +1112,7 @@ public class PrismSettings implements Observer
 					j = Integer.parseInt(args[++i]);
 					if (j < -1)
 						throw new NumberFormatException();
-					set(PRISM_OPENCL_WARP_SIZE, j);
+          set(PRISM_OPENCL_WARP_SIZE, j);
 				} catch (NumberFormatException e) {
 					throw new PrismException("Invalid value for -" + sw + " switch");
 				}

@@ -183,6 +183,7 @@ PS_FoxGlynn_OpenCLKernel::PS_FoxGlynn_OpenCLKernel
   {
     warp_size = opencl_warp_size;
   }
+  std::cerr << "Warp size  " << warp_size << "; OpenCL warp size " << opencl_warp_size << std::endl;
 
   std::vector<cl_real> fw_non_zero;
   fw_non_zero.reserve(msc_non_zero_size);

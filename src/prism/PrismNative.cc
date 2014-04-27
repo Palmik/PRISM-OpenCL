@@ -46,7 +46,7 @@ EXPORT int max_iters;
 EXPORT bool compact;
 // use OpenCL implementation when possible? Other associated options
 EXPORT bool opencl;
-EXPORT bool opencl_warp_size;
+EXPORT int opencl_warp_size;
 // sparse bits info
 EXPORT int sb_max_mem;
 EXPORT int num_sb_levels;
