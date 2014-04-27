@@ -109,13 +109,25 @@ a.varlink { text-decoration:none; }
   <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ConfiguringPRISM/Introduction?action=sourceblock&amp;num=1' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
-<p class='vspace'>The <code>.prism</code> settings file is <em>ignored</em> by the command-line version (unlike earlier versions of PRISM, where it was used). You can, however, request that the settings file <em>is</em> read, using the <code>-settings</code> switch, e.g.:
+<p class='vspace'>For some switches, whose format is not straightforward, there is additional help available on the command-line, using <code>-help switch</code>. For example:
 </p>
 <div class='vspace'></div>
 <div class='sourceblock ' id='sourceblock2'>
-  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism -settings ~/.prism</span><br/>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism -help const</span><br/>
+<span style="font-weight:bold;">prism -help simpath</span><br/>
+<span style="font-weight:bold;">prism -help exportresults</span><br/>
+<span style="font-weight:bold;">prism -help exportmodel</span><br/>
 </div></div>
   <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ConfiguringPRISM/Introduction?action=sourceblock&amp;num=2' type='text/plain'>[&#036;[Get Code]]</a></div>
+</div>
+
+<p class='vspace'>The <code>.prism</code> settings file is <em>ignored</em> by the command-line version (unlike earlier versions of PRISM, where it was used). You can, however, request that the settings file <em>is</em> read, using the <code>-settings</code> switch, e.g.:
+</p>
+<div class='vspace'></div>
+<div class='sourceblock ' id='sourceblock3'>
+  <div class='sourceblocktext'><div class="shell"><span style="font-weight:bold;">prism -settings ~/.prism</span><br/>
+</div></div>
+  <div class='sourceblocklink'><a href='http://prismmodelchecker.localhost/manual/ConfiguringPRISM/Introduction?action=sourceblock&amp;num=3' type='text/plain'>[&#036;[Get Code]]</a></div>
 </div>
 
 <p class='vspace'>In the following sections, we give a brief description of the most important configuration options available.

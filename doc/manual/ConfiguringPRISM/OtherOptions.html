@@ -106,6 +106,7 @@ To enable the use of fairness constraints (for <code><strong>P</strong></code> o
 </p>
 <div class='vspace'></div><h3>Probability/rate checks</h3>
 <p>By default, when constructing a model, PRISM checks that all probabilities and rates are within acceptable ranges (i.e. are between 0 and 1, or are non-negative, respectively). For DTMCs and MDPs, it also checks that the probabilities sum up to one for each command. These checks are often very useful for highlighting user modelling errors and it is strongly recommended that you keep them enabled, however if you need to disable them you can do so via option "do prob checks?" in the GUI or command-line switch <code>-noprobchecks</code>.
+You can also change the level of precision used to check that probabilities sum to 1 using the option "Probability sum threshold" (or command-line switch <code>-sumroundoff</code>.
 </p>
 <div class='vspace'></div><h3>CUDD memory</h3>
 <p>CUDD, the underlying BDD and MTBDD library used in PRISM has an upper memory limit.
