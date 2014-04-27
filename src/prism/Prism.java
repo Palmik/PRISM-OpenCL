@@ -396,6 +396,11 @@ public class Prism extends PrismComponent implements PrismSettingsListener
   {
     settings.set(PrismSettings.PRISM_OPENCL_ENABLED, b);
   }
+  
+  public void setOpenCLWarpSize(int ws) throws PrismException
+  {
+    settings.set(PrismSettings.PRISM_OPENCL_WARP_SIZE, ws);
+  }
 
 	public void setLinEqMethod(int i) throws PrismException
 	{
@@ -782,7 +787,12 @@ public class Prism extends PrismComponent implements PrismSettingsListener
     return settings.getBoolean(PrismSettings.PRISM_OPENCL_ENABLED);
   }
 
-	public long getCUDDMaxMem()
+  public int getOpenCLWarpSize()
+  {
+    return settings.getInteger(PrismSettings.PRISM_OPENCL_WARP_SIZE);
+  }
+	
+  public long getCUDDMaxMem()
 	{
 		return settings.getInteger(PrismSettings.PRISM_CUDD_MAX_MEM);
 	}

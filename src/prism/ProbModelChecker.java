@@ -81,6 +81,7 @@ public class ProbModelChecker extends NonProbModelChecker
     
     // OPENCL
 		PrismNative.setOpenCL(prism.getOpenCL());
+		PrismNative.setOpenCLWarpSize(prism.getOpenCLWarpSize());
 		
     PrismNative.setLinEqMethod(prism.getLinEqMethod());
 		PrismNative.setLinEqMethodParam(prism.getLinEqMethodParam());

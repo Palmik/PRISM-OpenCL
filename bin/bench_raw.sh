@@ -9,7 +9,7 @@ get_transition_count() {
 }
 
 get_model_checking_time() {
-  sed -n 's:.*Time for model checking\: \([0-9,\.]*\) seconds.*:\1:p' $1
+ sed -n 's:.*Time for \(model checking\|transient probability computation\)\: \([0-9,\.]*\) seconds.*:\2:p' $1
 }
 
 get_model_construction_time() {
@@ -18,10 +18,18 @@ get_model_construction_time() {
 
 bench_one() {
   times=$1
-  shift
+  mod_file=$2
+  pro_file=$3
+  pro=$4
+  opt=$5
 
+  tr="-tr"
   for i in $(eval echo "{1..$times}"); do
-    ./prism.bat -s $* &> prism_bench.out
+    if [[ $pro = $tr* ]]; then
+      $(./prism.bat $mod_file $pro $opt -s &> prism_bench.out)
+    else
+      $(./prism.bat $mod_file $pro_file $pro $opt -s &> prism_bench.out)
+    fi
    
     if [[ $i -eq 1 ]]; then
       echo $(get_state_count prism_bench.out)
@@ -32,7 +40,12 @@ bench_one() {
   done
 
   for i in $(eval echo "{1..$times}"); do
-    ./prism.bat -s -opencl $* &> prism_bench.out
+    if [[ $pro = $tr* ]]; then
+      $(./prism.bat -opencl $mod_file $pro $opt -s &> prism_bench.out)
+    else
+      $(./prism.bat -opencl $mod_file $pro_file $pro $opt -s &> prism_bench.out)
+    fi
+    
     echo $(get_model_checking_time prism_bench.out)
   done
 }
@@ -45,23 +58,22 @@ while read model; do
   props=()
   for i in $(eval echo "{1..$prop_count}"); do
     read prop
-    props+=($prop)
+    props+=("$prop")
   done
   read opt_count
   opts=()
   for i in $(eval echo "{1..$opt_count}"); do
     read opt
-    opts+=($opt)
+    opts+=("$opt")
   done
   
   echo "$model $properties"
   echo "$prop_count $opt_count"
   for prop in "${props[@]}"; do
-    echo "-prop $prop"
+    echo "$prop"
     for opt in "${opts[@]}"; do
       echo "-const $opt"
-      args="../examples/$model ../examples/$properties -prop $prop -const $opt"
-      bench_one $times $args 
+      bench_one $times ../examples/$model ../examples/$properties "$prop" "-const $opt"
     done 
   done
 done

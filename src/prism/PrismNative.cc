@@ -46,6 +46,7 @@ EXPORT int max_iters;
 EXPORT bool compact;
 // use OpenCL implementation when possible? Other associated options
 EXPORT bool opencl;
+EXPORT bool opencl_warp_size;
 // sparse bits info
 EXPORT int sb_max_mem;
 EXPORT int num_sb_levels;
@@ -95,6 +96,11 @@ JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetCompact(JNIEnv *env, jclass
 JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetOpenCL(JNIEnv *env, jclass cls, jboolean b)
 {
 	opencl = b;
+}
+
+JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetOpenCLWarpSize(JNIEnv *env, jclass cls, jint ws)
+{
+	opencl_warp_size = ws;
 }
 
 //------------------------------------------------------------------------------

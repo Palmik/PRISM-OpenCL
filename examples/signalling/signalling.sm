@@ -1,0 +1,112 @@
+ctmc
+
+const int Min;
+const int Max;
+const double Avg;
+
+// constants
+const int M = Max; // maximal number of species
+const int N = Min; // minimal number of species
+const double avgPop = Avg;  // average population given by ODE
+
+// initial nuber of species
+const int initH = 30;
+const int initHp = 0;
+const int initR = 30;
+const int initRp = 0;
+
+// base rates
+const double degrH = 0.01;
+const double degrR = 0.01;
+const double prodH = 0.30;
+const double prodR = 0.30;
+
+const double degr = 0.01;
+const double prod = 0.30;
+
+const double k1 = 1.0;
+const double k2 = 1.0;
+const double k3 = 1.0;      // k3 * H should roughly equal k3 from model 1 so that both
+                            // dephosphorylation rates have equal mean speed
+const double kS = 15.0;
+
+const double kN_H = 4.0;
+const double kN_R = 4.0; //noise
+
+// Algebraic constraints on rates and populations:
+// avgPop / gMax < prod / degr      (so gk1 and gk2 can be positive)
+
+rewards "signal_transfer"
+    // rewards express the mean quadratic deviation
+    // steady state reward R{"signal_transfer"}=? [ S ]
+    true : (popRp-kS)*(popRp-kS);
+    //
+endrewards
+
+rewards "input_noise_H"
+    // rewards express the mean quadratic deviation
+    // steady state reward R{"input_noise_H"}=? [ S ]
+    true : (popH+popHp-avgPop)*(popH+popHp-avgPop);
+    //
+endrewards
+
+rewards "input_noise_R"
+    // rewards express the mean quadratic deviation
+    // steady state reward R{"input_noise_R"}=? [ S ]
+    true : (popR+popRp-avgPop)*(popR+popRp-avgPop);
+    //
+endrewards
+
+
+module sig
+
+    popH : [0..M] init initH;
+    popHp : [0..M] init initHp;
+    popR : [0..M] init initR;
+    popRp : [0..M] init initRp;
+
+    // H -> Hp, [k1*S*H]
+    [] (popH > 0)
+     & (popHp + popH <= M)
+    -> k1* kS * popH : (popH' = popH - 1) & (popHp' = popHp + 1);
+
+    // Hp + R -> Rp + H, [k2*Hp*R];
+    [] (popHp > 0) & (popR > 0)
+     & (popR + popRp <= M) & (popH + popHp <= M)
+    -> k2 * popHp * popR : (popH' = popH + 1) & (popHp' = popHp - 1) & (popR' = popR - 1) & (popRp' = popRp + 1);
+
+    // Rp -> R, [k3*Rp];
+    //[] (popRp > 0)
+    // & (popR + popRp <= M)
+    //-> k3 * popRp : (popRp' = popRp - 1) & (popR' = popR + 1);
+    
+    //H + Rp -> R + H, [k3*Rp*H];
+    [] (popRp>0) & (popH>0)
+     & (popR + popRp <= M)
+    -> k3 * popRp * popH : (popRp' = popRp - 1) & (popR' = popR + 1);
+
+    // -> H, [prodH];
+    [] (popH + popHp < M)
+    -> prodH * 2/(1+pow((popH+popHp)/avgPop,kN_H)) : (popH' = popH + 1);
+
+    // H -> , [H*degrH];
+    [] (popH > 0) & (popH + popHp > N)
+    -> degrH * popH : (popH' = popH - 1);
+
+    // Hp -> , [Hp*degrH];
+    [] (popHp > 0) & (popH + popHp > N)
+    -> degrH * popHp : (popHp' = popHp - 1);
+
+    // -> R, [prodR];
+    [] (popR + popRp < M)
+    -> prodR * 2/(1+pow((popR+popRp)/avgPop,kN_R)) : (popR' = popR + 1);
+
+    // R -> , [degrR*R];
+    [] (popR > 0) & (popR + popRp > N)
+    -> degrR * popR : (popR' = popR - 1);
+
+    // Rp -> , [degrR*Rp];
+    [] (popRp > 0) & (popR + popRp > N)
+    -> degrR * popRp : (popRp' = popRp - 1);
+
+endmodule

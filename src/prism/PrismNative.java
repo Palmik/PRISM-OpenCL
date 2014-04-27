@@ -89,7 +89,13 @@ public class PrismNative
 		PN_SetOpenCL(b);
 	}
 
-	private static native void PN_SetLinEqMethod(int i);
+	private static native void PN_SetOpenCLWarpSize(int ws);
+	public static void setOpenCLWarpSize(int ws)
+	{
+		PN_SetOpenCLWarpSize(ws);
+	}
+	
+  private static native void PN_SetLinEqMethod(int i);
 	public static void setLinEqMethod(int i)
 	{
 		PN_SetLinEqMethod(i);
