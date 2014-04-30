@@ -3,5 +3,9 @@
 *.exe
 *~
 *.o
+*.a
 *.class
 bin/
+ext/
+lib/
+obj/
