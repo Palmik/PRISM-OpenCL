@@ -1,3 +1,12 @@
+signalling/signalling.sm
+ 
+2
+-tr 10
+-tr 20
+3
+Min=25,Max=35,Avg=30
+Min=25,Max=36,Avg=30
+Min=24,Max=35,Avg=30
 cluster/cluster.sm
 cluster/cluster.csl
 6
@@ -28,12 +37,3 @@ c=150,T=10
 c=200,T=10
 c=250,T=10
 c=500,T=10
-signalling/signalling.sm
- 
-2
--tr 10
--tr 20
-3
-Min=25,Max=35,Avg=30
-Min=25,Max=45,Avg=35
-Min=0,Max=60,Avg=45

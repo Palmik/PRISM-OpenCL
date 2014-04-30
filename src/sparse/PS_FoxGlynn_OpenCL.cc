@@ -1,3 +1,4 @@
+#define CL_FOX_GLYNN_NAIVE
 #include "PS_FoxGlynn_OpenCL.h"
 
 #include <sys/stat.h>

@@ -26,9 +26,9 @@ bench_one() {
   tr="-tr"
   for i in $(eval echo "{1..$times}"); do
     if [[ $pro = $tr* ]]; then
-      $(./prism.bat $mod_file $pro $opt -s &> prism_bench.out)
+      $(./prism $mod_file $pro $opt &> prism_bench.out)
     else
-      $(./prism.bat $mod_file $pro_file $pro $opt -s &> prism_bench.out)
+      $(./prism $mod_file $pro_file $pro $opt &> prism_bench.out)
     fi
    
     if [[ $i -eq 1 ]]; then
@@ -38,20 +38,12 @@ bench_one() {
 
     echo $(get_model_checking_time prism_bench.out)
   done
-
-  for i in $(eval echo "{1..$times}"); do
-    if [[ $pro = $tr* ]]; then
-      $(./prism.bat -opencl $mod_file $pro $opt -s &> prism_bench.out)
-    else
-      $(./prism.bat -opencl $mod_file $pro_file $pro $opt -s &> prism_bench.out)
-    fi
-    
-    echo $(get_model_checking_time prism_bench.out)
-  done
 }
 
 times=$1
+shift
 echo $times
+echo "$*"
 while read model; do
   read properties
   read prop_count
@@ -73,7 +65,7 @@ while read model; do
     echo "$prop"
     for opt in "${opts[@]}"; do
       echo "-const $opt"
-      bench_one $times ../examples/$model ../examples/$properties "$prop" "-const $opt"
+      bench_one $times ../examples/$model ../examples/$properties "$prop" "-const $opt $*"
     done 
   done
 done

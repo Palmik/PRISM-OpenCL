@@ -25,7 +25,7 @@ do
         echo "Setting path in startup script $PRISM_DIR/$FILE_TO_CHANGE..."
     fi
     if sed -e "s|PRISM_DIR=.*|PRISM_DIR=$PRISM_DIR|g" "$PRISM_DIR"/$FILE_TO_CHANGE > "$PRISM_DIR"/$TEMP_FILE ; then
-      /bin/mv "$PRISM_DIR"/$TEMP_FILE "$PRISM_DIR"/$FILE_TO_CHANGE
+      mv "$PRISM_DIR"/$TEMP_FILE "$PRISM_DIR"/$FILE_TO_CHANGE
       chmod 755 "$PRISM_DIR"/$FILE_TO_CHANGE
     else
       echo "Error: Failed to modify startup scripts."

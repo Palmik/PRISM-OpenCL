@@ -7,6 +7,10 @@ int main()
 {
   size_t trials = 0;
   std::cin >> trials >> std::ws;
+  
+  std::string options;
+  std::getline(std::cin, options);
+  std::cout << options << std::endl;
 
   std::string model;
   while (std::getline(std::cin, model))
@@ -36,26 +40,18 @@ int main()
         std::cout << model_states << std::endl
                   << model_transitions << std::endl;
         
-        double cpu_avg = 0;
+        double avg = 0;
         for (size_t i = 0; i < trials; ++i)
         {
           double t = 0;
           std::cin >> t;
-          cpu_avg += t;
+          avg += t;
         }
-        cpu_avg /= trials;
+        avg /= trials;
 
-        double ocl_avg = 0;
-        for (size_t i = 0; i < trials; ++i)
-        {
-          double t = 0;
-          std::cin >> t;
-          ocl_avg += t;
-        }
-        ocl_avg /= trials;
         std::cin >> std::ws;
 
-        std::cout << cpu_avg << std::endl << ocl_avg << std::endl;
+        std::cout << avg << std::endl;
       } 
     }
   }
