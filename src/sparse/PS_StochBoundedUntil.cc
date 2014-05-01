@@ -27,6 +27,9 @@
 // includes
 #include "PrismSparse.h"
 #include "PS_FoxGlynn_OpenCL.h"
+#include <iterator>
+#include <algorithm>
+#include <iostream>
 #include <math.h>
 #include <util.h>
 #include <cudd.h>
@@ -356,6 +359,7 @@ jlong __jlongpointer mu	// probs for multiplying
     
       , diags, fgw.weights, fgw.left, fgw.right
       , soln, soln2, sum
+      , time, unif
       , num_iters
 
       , start2
@@ -371,7 +375,10 @@ jlong __jlongpointer mu	// probs for multiplying
 	// print iters/timing info
 	if (num_iters == -1) num_iters = fgw.right;
 	PS_PrintToMainLog(env, "\nIterative method: %ld iterations in %.2f seconds (average %.6f, setup %.2f)\n", num_iters, time_taken, time_for_iters/num_iters, time_for_setup);
-	
+
+  std::copy(sum, sum + n, std::ostream_iterator<double>(std::cerr, " "));
+  std::cerr << std::endl;
+
 	// catch exceptions: register error, free memory
 	} catch (std::bad_alloc e) {
 		PS_SetErrorMessage("Out of memory");

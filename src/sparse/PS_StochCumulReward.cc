@@ -368,10 +368,13 @@ jdouble time		// time bound
     
       , diags, fgw.weights, fgw.left, fgw.right
       , soln, soln2, sum
+      , time, unif
       , num_iters
 
       , start2
       , start3
+      
+      , true // Indicating that this is PS_StochCumulReward -- I feel dirty.
       );
   }
 	

@@ -39,10 +39,15 @@ void PS_FoxGlynn_OpenCL
   , cl_real* soln2
   , cl_real* sum
 
+  , long int time 
+  , cl_real  unif
+  
   , long int& num_iters
 
   , long int start2
-  , long int start3 
+  , long int start3
+  
+  , bool is_cumul_reward
   )
 {
   double term_crit_param_unif = term_crit_param / 8.0;
@@ -74,13 +79,16 @@ void PS_FoxGlynn_OpenCL
     , fgw_ds
     , fgw_ws
     , fgw_l
+    
+    , unif
+    , is_cumul_reward
     );
 
   bool done = false;
-  size_t iters_max_step = fgw_r / 4;
-  for (size_t iters = 0; (iters < fgw_r) && !done;)
+  size_t iters_max_step = fgw_r / 5;
+  for (size_t iters = 1; (iters <= fgw_r) && !done;)
   {
-    size_t iters_step = (iters + iters_max_step < fgw_r) ? iters_max_step : fgw_r - iters;
+    size_t iters_step = (iters + iters_max_step <= fgw_r) ? iters_max_step : fgw_r - iters;
     if (iters_step == 0) { break; }
     kernel.run(soln1, soln2, iters_step);
     iters += iters_step;
@@ -110,10 +118,10 @@ void PS_FoxGlynn_OpenCL
     {
       kernel.sum(sum);
       // work out sum of remaining poisson probabilities
-      cl_real weight = 1.0;
+      cl_real weight = (is_cumul_reward) ? time - iters / unif : 1.0;
       if (iters > fgw_l)
       {
-        weight = 0.0;
+        weight = 0.0; 
         for (size_t i = iters; i <= fgw_r; i++)
         {
           weight += fgw_ws[i - fgw_l];
@@ -164,6 +172,9 @@ PS_FoxGlynn_OpenCLKernel::PS_FoxGlynn_OpenCLKernel
   , cl_real* fgw_d_
   , cl_real* fgw_w_
   , cl_uint fgw_l_
+  
+  , cl_real unif
+  , bool is_cumul_reward
   )
   : OpenCLKernel(cl_device_, cl_context_, PS_FoxGlynn_Source, "PS_FoxGlynn")
 
@@ -172,6 +183,8 @@ PS_FoxGlynn_OpenCLKernel::PS_FoxGlynn_OpenCLKernel
   , fgw_w_m(fgw_w_)
   , fgw_l_m(fgw_l_)
   , fgw_i_m(1)
+  , unif_m(unif)
+  , is_cumul_reward_m(is_cumul_reward)
 
   , lws_m(256)
   , gws_m(least_greater_multiple(lws_m, dim_m))
@@ -293,6 +306,7 @@ void PS_FoxGlynn_OpenCLKernel::run
   }
   clWaitForEvents(1, &ev_iter_exec);
   cl_read_buffer<cl_real>(v0, dim_m, vec_o);
+  cl_read_buffer<cl_real>(v1, dim_m, vec_i);
   clReleaseEvent(ev_iter_exec);
 }
 
@@ -315,6 +329,9 @@ PS_FoxGlynn_OpenCLKernelNaive::PS_FoxGlynn_OpenCLKernelNaive
   , cl_real* fgw_d_
   , cl_real* fgw_w_
   , cl_uint fgw_l_
+
+  , cl_real unif
+  , bool is_cumul_reward
   )
   : OpenCLKernel(cl_device_, cl_context_, PS_FoxGlynn_Source, "PS_FoxGlynn_Naive")
 
@@ -323,6 +340,8 @@ PS_FoxGlynn_OpenCLKernelNaive::PS_FoxGlynn_OpenCLKernelNaive
   , fgw_w_m(fgw_w_)
   , fgw_l_m(fgw_l_)
   , fgw_i_m(1)
+  , unif_m(unif)
+  , is_cumul_reward_m(is_cumul_reward)
 
   , lws_m(256)
   , gws_m(least_greater_multiple(lws_m, dim_m))

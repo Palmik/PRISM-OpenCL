@@ -27,11 +27,16 @@ void PS_FoxGlynn_OpenCL
   , cl_real* soln1
   , cl_real* soln2
   , cl_real* sum
+  
+  , long int time 
+  , cl_real  unif
 
   , long int& num_iters
 
   , long int start2
   , long int start3 
+ 
+  , bool is_cumul_reward = false
   );
 
 class OpenCLKernel
@@ -114,6 +119,9 @@ class PS_FoxGlynn_OpenCLKernel : public OpenCLKernel
       , cl_real* fgw_ds
       , cl_real* fgw_ws
       , cl_uint fgw_l
+      
+      , cl_real unif
+      , bool is_cumul_reward
       );
     ~PS_FoxGlynn_OpenCLKernel();
 
@@ -129,7 +137,10 @@ class PS_FoxGlynn_OpenCLKernel : public OpenCLKernel
     cl_real* fgw_w_m; // The FGW weights.
     cl_uint fgw_l_m; // The FGW "left" parameter.
     cl_uint fgw_i_m; // The FGW iteration counter.
-  
+    
+    cl_real unif_m;
+    bool is_cumul_reward_m;
+
     cl_mem cl_v0_m;
     cl_mem cl_v1_m;
     cl_mem cl_fw_non_zero_m;
@@ -160,6 +171,9 @@ class PS_FoxGlynn_OpenCLKernelNaive : public OpenCLKernel
       , cl_real* fgw_ds
       , cl_real* fgw_ws
       , cl_uint fgw_l
+      
+      , cl_real unif
+      , bool is_cumul_reward
       );
     ~PS_FoxGlynn_OpenCLKernelNaive();
 
@@ -167,7 +181,24 @@ class PS_FoxGlynn_OpenCLKernelNaive : public OpenCLKernel
     void sum(cl_real* x);
 
   private:
-    cl_real fgw_w() { return ((fgw_i_m < fgw_l_m) ? 0.0 : fgw_w_m[fgw_i_m - fgw_l_m]); }
+    cl_real fgw_w()
+    {
+      if (fgw_i_m < fgw_l_m)
+      {
+        if (is_cumul_reward_m)
+        {
+          return 1.0 / unif_m;
+        }
+        else
+        {
+          return 0.0;
+        }
+      }
+      else
+      {
+        return fgw_w_m[fgw_i_m - fgw_l_m];
+      }
+    }
 
     cl_uint dim_m;
     cl_uint msc_non_zero_size_m;
@@ -175,7 +206,10 @@ class PS_FoxGlynn_OpenCLKernelNaive : public OpenCLKernel
     cl_real* fgw_w_m; // The FGW weights.
     cl_uint fgw_l_m; // The FGW "left" parameter.
     cl_uint fgw_i_m; // The FGW iteration counter.
-  
+    
+    cl_real unif_m;
+    bool is_cumul_reward_m;
+
     cl_mem cl_v0_m;
     cl_mem cl_v1_m;
     cl_mem cl_msc_non_zero_m;
