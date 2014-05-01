@@ -77,7 +77,7 @@ void PS_FoxGlynn_OpenCL
     );
 
   bool done = false;
-  size_t iters_max_step = fgw_r / 2;
+  size_t iters_max_step = fgw_r / 4;
   for (size_t iters = 0; (iters < fgw_r) && !done;)
   {
     size_t iters_step = (iters + iters_max_step < fgw_r) ? iters_max_step : fgw_r - iters;
