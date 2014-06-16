@@ -7,6 +7,7 @@
 #include <cstdlib>
 #include <memory>
 #include <iostream>
+#include <iterator>
 
 #include <vector>
 #include <CL/cl.h>
@@ -85,8 +86,8 @@ void PS_FoxGlynn_OpenCL
     );
 
   bool done = false;
-  size_t iters_max_step = fgw_r / 5;
-  for (size_t iters = 1; (iters <= fgw_r) && !done;)
+  size_t iters_max_step = (do_ss_detect) ? 1 : fgw_r;
+  for (size_t iters = 0; (iters < fgw_r) && !done;)
   {
     size_t iters_step = (iters + iters_max_step <= fgw_r) ? iters_max_step : fgw_r - iters;
     if (iters_step == 0) { break; }
@@ -116,7 +117,6 @@ void PS_FoxGlynn_OpenCL
     // special case when finished early (steady-state detected)
     if (done)
     {
-      kernel.sum(sum);
       // work out sum of remaining poisson probabilities
       cl_real weight = (is_cumul_reward) ? time - iters / unif : 1.0;
       if (iters > fgw_l)
@@ -130,7 +130,7 @@ void PS_FoxGlynn_OpenCL
       // add to sum
       for (size_t i = 0; i < msc_dim; i++) sum[i] += weight * soln2[i];
       PS_PrintToMainLog(env, "\nSteady state detected at iteration %ld\n", iters);
-      num_iters = iters;
+      num_iters = iters + 1;
       break;
     }
     
@@ -147,9 +147,8 @@ void PS_FoxGlynn_OpenCL
     cl_real* tmpsoln = soln1;
     soln1 = soln2;
     soln2 = tmpsoln;
-    
+    kernel.sum(sum);
   }
-  kernel.sum(sum);
 }
 
 unsigned long int least_greater_multiple(unsigned long int a, unsigned long int min)
