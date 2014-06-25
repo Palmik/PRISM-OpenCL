@@ -349,13 +349,16 @@ jlong __jlongpointer mu	// probs for multiplying
         msc_row_offset[ii] = rmsm->row_counts[ii];
       }
     }
+  
+    MatrixCS matrix;
+    matrix.non_zero = rmsm->non_zeros;
+    matrix.non_zero_xs = (cl_uint*)rmsm->cols;
+    matrix.non_zero_ys_offset = msc_row_offset;
+    matrix.non_zero_cnt = (cl_uint)rmsm->nnz;
+    matrix.n = (cl_uint)n;
     PS_FoxGlynn_OpenCL
       ( env 
-      , rmsm->non_zeros
-      , (cl_uint*)rmsm->cols
-      , msc_row_offset
-      , (cl_uint)rmsm->nnz
-      , (cl_uint)n
+      , matrix
     
       , diags, fgw.weights, fgw.left, fgw.right
       , soln, soln2, sum
@@ -364,6 +367,8 @@ jlong __jlongpointer mu	// probs for multiplying
 
       , start2
       , start3
+
+      , false
       );
   }
 	

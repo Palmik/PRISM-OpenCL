@@ -12,14 +12,19 @@
 THIS_DIR = sparse
 PRISM_DIR_REL = ../..
 
-ifndef OPENCLI
-OPENCLI = "/cygdrive/c/Program Files (x86)/AMD APP/include"
-endif
-ifndef OPENCLL
-OPENCLL = "/cygdrive/c/Program Files (x86)/AMD APP/lib/x86_64"
-endif
+#ifndef OPENCLI
+#OPENCLI = "/cygdrive/c/Program Files (x86)/AMD APP/include"
+#endif
+#ifndef OPENCLL
+#OPENCLL = "/cygdrive/c/Program Files (x86)/AMD APP/lib/x86_64"
+#endif
 
-
+ifdef OPENCLI
+OPENCLI_ = -I$(OPENCLI)
+endif
+ifdef OPENCLL
+OPENCLL_ = -L$(OPENCLL)
+endif
 
 INCLUDES = \
 -I$(PRISM_DIR_REL)/$(CUDD_DIR)/include \
@@ -27,7 +32,7 @@ INCLUDES = \
 -I"$(JAVA_JNI_MD_H_DIR)" \
 -I$(PRISM_DIR_REL)/$(INCLUDE_DIR) \
 -I$(PRISM_DIR_REL)/ext/lpsolve55/include \
--I$(OPENCLI)
+$(OPENCLI_)
 
 LIBRARIES = \
 -L$(PRISM_DIR_REL)/$(LIB_DIR) \
@@ -37,8 +42,8 @@ LIBRARIES = \
 -lprism \
 $(LIBMATH) \
 -llpsolve55 \
--L$(OPENCLL) \
--lOpenCL 
+-lOpenCL \
+$(OPENCLL_) 
 
 JAVA_FILES_ALL = $(wildcard *.java)
 JAVA_FILES = $(subst package-info.java,,$(JAVA_FILES_ALL))

@@ -340,14 +340,16 @@ jdouble time		// time bound
         msc_column_offset[ii] = cmsm->col_counts[ii];
       }
     }
+    MatrixCS matrix;
+    matrix.non_zero = cmsm->non_zeros;
+    matrix.non_zero_xs = (cl_uint*)cmsm->rows;
+    matrix.non_zero_ys_offset = msc_column_offset;
+    matrix.non_zero_cnt = (cl_uint)cmsm->nnz;
+    matrix.n = (cl_uint)n;
     PS_FoxGlynn_OpenCL
       ( env 
-      , cmsm->non_zeros
-      , (cl_uint*)cmsm->rows
-      , msc_column_offset
-      , (cl_uint)cmsm->nnz
-      , (cl_uint)n
-    
+      , matrix
+
       , diags, fgw.weights, fgw.left, fgw.right
       , soln, soln2, sum
       
@@ -356,6 +358,8 @@ jdouble time		// time bound
 
       , start2
       , start3
+
+      , false
       );
   }
 	
