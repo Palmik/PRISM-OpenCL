@@ -16,7 +16,7 @@ T least_greater_multiple(T a, T min)
 
 struct cl_device_information
 {
-  cl_device_information(cl_device_id id, cl_device_type) : id(id), type(type) {}
+  cl_device_information(cl_device_id id = 0, cl_device_type type = 0) : id(id), type(type) {}
   cl_device_id id;
   cl_device_type type;
 };
@@ -36,7 +36,7 @@ int cl_get_devices
   cl_uint pids_size;
   cl_uint dids_size;
   
-  err = clGetPlatformIDs(32, pids, &pids_size); CLERR_PASS();
+  err = clGetPlatformIDs(1, pids, &pids_size); CLERR_PASS();
   
   for (size_t ii = 0; ii < pids_size; ++ii)
   {

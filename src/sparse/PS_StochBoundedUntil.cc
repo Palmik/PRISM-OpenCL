@@ -26,7 +26,7 @@
 
 // includes
 #include "PrismSparse.h"
-#include "PS_FoxGlynn_OpenCL.h"
+#include "FGOpenCL.h"
 #include <iterator>
 #include <algorithm>
 #include <iostream>
@@ -356,7 +356,7 @@ jlong __jlongpointer mu	// probs for multiplying
     matrix.non_zero_ys_offset = msc_row_offset;
     matrix.non_zero_cnt = (cl_uint)rmsm->nnz;
     matrix.n = (cl_uint)n;
-    PS_FoxGlynn_OpenCL
+    FGOpenCL
       ( env 
       , matrix
     

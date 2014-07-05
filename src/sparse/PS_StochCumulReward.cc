@@ -26,7 +26,7 @@
 
 // includes
 #include "PrismSparse.h"
-#include "PS_FoxGlynn_OpenCL.h"
+#include "FGOpenCL.h"
 #include <math.h>
 #include <util.h>
 #include <cudd.h>
@@ -365,7 +365,7 @@ jdouble time		// time bound
     matrix.non_zero_ys_offset = msc_row_offset;
     matrix.non_zero_cnt = (cl_uint)rmsm->nnz;
     matrix.n = (cl_uint)n;
-    PS_FoxGlynn_OpenCL
+    FGOpenCL
       ( env 
       , matrix
     
