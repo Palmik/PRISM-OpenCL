@@ -3,8 +3,24 @@
 
 #include <CL/cl.h>
 
+#include "PrismNativeGlob.h" // opencl_warp_size command line option
+
 #define CLERR() { if (err != CL_SUCCESS) { std::printf("%s:%d:%d OpenCL error %d\n", __FILE__, __LINE__, __func__, err); } }
 #define CLERR_PASS() { if (err != CL_SUCCESS) { return err; } }
+
+static inline
+cl_uint cl_warp_size(cl_device_id device, cl_kernel kernel)
+{
+  size_t warp_size;
+  clGetKernelWorkGroupInfo
+    ( kernel, device, CL_KERNEL_PREFERRED_WORK_GROUP_SIZE_MULTIPLE
+    , sizeof(size_t), &warp_size, NULL);
+  if (opencl_warp_size > 0)
+  {
+    warp_size = opencl_warp_size;
+  }
+  return warp_size; 
+}
 
 template <typename T>
 T least_greater_multiple(T a, T min)
@@ -103,10 +119,10 @@ class OpenCLKernel
       {
         cl_int err = 0;
         
-        cl_queue_m = clCreateCommandQueue(cl_context_m, cl_device_m, 0, &err);
-        cl_program_m = clCreateProgramWithSource(cl_context_m, 1, &source, NULL, &err);
-        err = clBuildProgram(cl_program_m, 1, &cl_device_m, NULL, NULL, NULL);
-        cl_kernel_m = clCreateKernel(cl_program_m, kernel_name, &err);
+        cl_queue_m = clCreateCommandQueue(cl_context_m, cl_device_m, 0, &err); CLERR();
+        cl_program_m = clCreateProgramWithSource(cl_context_m, 1, &source, NULL, &err); CLERR();
+        err = clBuildProgram(cl_program_m, 1, &cl_device_m, NULL, NULL, NULL); CLERR();
+        cl_kernel_m = clCreateKernel(cl_program_m, kernel_name, &err); CLERR();
       }
 
     ~OpenCLKernel()

@@ -128,6 +128,7 @@ public class PrismSettings implements Observer
   // OpenCL settings.
   public static final String PRISM_OPENCL_ENABLED = "prism.opencl.enabled";
   public static final String PRISM_OPENCL_WARP_SIZE = "prism.opencl.warpSize";
+  public static final String PRISM_OPENCL_SPARSE_MATRIX_FORMAT = "prism.opencl.sparseMatrixFormat";
 
 	//Simulator
 	public static final String SIMULATOR_DEFAULT_NUM_SAMPLES		= "simulator.defaultNumSamples";
@@ -242,6 +243,7 @@ public class PrismSettings implements Observer
 			// OPENCL OPTIONS
       { BOOLEAN_TYPE,		PRISM_OPENCL_ENABLED,					"Use OpenCL",				 	"4.1",			new Boolean(false),															"", "Whether the OpenCL implementation is enabled" },																							
       { INTEGER_TYPE,		PRISM_OPENCL_WARP_SIZE,				"Set warp-size",		 	"4.1",			new Integer(0),   															"0", "The warp-size assumed by the OpenCL based algorithms." },																							
+      { CHOICE_TYPE,		PRISM_OPENCL_SPARSE_MATRIX_FORMAT,				"Select sparse matrix format",		 	"4.1",			"CS",   															"CS,CS_FW,ELL,ELL_FW", "The sparse matrix format used by the OpenCL based algorithms." },																							
 			// MODEL CHECKING OPTIONS:
 			{ BOOLEAN_TYPE,		PRISM_PRECOMPUTATION,					"Use precomputation",					"2.1",			new Boolean(true),															"",																							
 																			"Whether to use model checking precomputation algorithms (Prob0, Prob1, etc.), where optional." },
@@ -1105,6 +1107,29 @@ public class PrismSettings implements Observer
     else if (sw.equals("opencl") || sw.equals("cl")) {
       set(PRISM_OPENCL_ENABLED, true);
     }
+    else if (sw.equals("cl-spmfmt")) {
+      set(PRISM_OPENCL_ENABLED, true);
+			if (i < args.length - 1) {
+				s = args[++i];
+        if (s.equals("CS")) {
+          set(PRISM_OPENCL_SPARSE_MATRIX_FORMAT, "CS");
+        }
+        else if (s.equals("CS_FW")) {
+          set(PRISM_OPENCL_SPARSE_MATRIX_FORMAT, "CS_FW");
+        }
+        else if (s.equals("ELL")) {
+          set(PRISM_OPENCL_SPARSE_MATRIX_FORMAT, "ELL");
+        }
+        else if (s.equals("ELL_FW")) {
+          set(PRISM_OPENCL_SPARSE_MATRIX_FORMAT, "ELL_FW");
+        }
+			  else {
+          throw new PrismException("Invalid value for -" + sw + " switch");
+				}
+			} else {
+				throw new PrismException("No value specified for -" + sw + " switch");
+			}
+    }
     else if (sw.equals("cl-ws")) {
       set(PRISM_OPENCL_ENABLED, true);
 			if (i < args.length - 1) {
@@ -1433,6 +1458,7 @@ public class PrismSettings implements Observer
     mainLog.println("OPENCL OPTIONS");
     mainLog.println("-opencl (or -cl) ............... Use the OpenCL implementation when available (Sparse (StochTransient))"); 
     mainLog.println("-cl-ws <x> ..................... Set the warp-size to <x> [default: the implementation tries to use the optimal value based on the device]."); 
+    mainLog.println("-cl-spmfmt <x> ................. Select the sparse matrix format [default: CS (column sparse)], [possible: CS, CS_FW, ELL, ELL_FW]."); 
 		mainLog.println();
 		mainLog.println("SOLUTION METHODS (LINEAR EQUATIONS):");
 		mainLog.println("-power (or -pow, -pwr) ......... Use the Power method for numerical computation");

@@ -93,6 +93,12 @@ public class PrismNative
 	public static void setOpenCLWarpSize(int ws)
 	{
 		PN_SetOpenCLWarpSize(ws);
+  }
+
+  private static native void PN_SetOpenCLSparseMatrixFormat(int fmt);
+	public static void setOpenCLSparseMatrixFormat(int fmt)
+	{
+		PN_SetOpenCLSparseMatrixFormat(fmt);
 	}
 	
   private static native void PN_SetLinEqMethod(int i);

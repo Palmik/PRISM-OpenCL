@@ -49,6 +49,14 @@ JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetOpenCLWarpSize
 
 /*
  * Class:     prism_PrismNative
+ * Method:    PN_SetOpenCLSparseMatrixFormat
+ * Signature: (I)V
+ */
+JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetOpenCLSparseMatrixFormat
+  (JNIEnv *, jclass, jint);
+
+/*
+ * Class:     prism_PrismNative
  * Method:    PN_SetLinEqMethod
  * Signature: (I)V
  */

@@ -106,6 +106,7 @@ public class NondetModelChecker extends NonProbModelChecker
     // OPENCL
     PrismNative.setOpenCL(prism.getOpenCL());
     PrismNative.setOpenCLWarpSize(prism.getOpenCLWarpSize());
+    PrismNative.setOpenCLSparseMatrixFormat(prism.getOpenCLSparseMatrixFormat());
 		
     PrismNative.setTermCrit(prism.getTermCrit());
 		PrismNative.setTermCritParam(prism.getTermCritParam());

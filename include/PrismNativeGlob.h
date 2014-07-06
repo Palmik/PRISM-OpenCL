@@ -60,6 +60,12 @@ const int LIN_EQ_METHOD_BSOR = 9;
 const int LIN_EQ_METHOD_PSOR = 10;
 const int LIN_EQ_METHOD_BPSOR = 11;
 
+// OpenCL
+const int CL_SPARSE_MATRIX_FORMAT_CS = 0;
+const int CL_SPARSE_MATRIX_FORMAT_CS_FW = 1;
+const int CL_SPARSE_MATRIX_FORMAT_ELL = 2;
+const int CL_SPARSE_MATRIX_FORMAT_ELL_FW = 3;
+
 const int TERM_CRIT_ABSOLUTE = 1;
 const int TERM_CRIT_RELATIVE = 2;
 
@@ -90,6 +96,7 @@ EXPORT extern bool compact;
 // use OpenCL implementation when possible? Other associated options
 EXPORT extern bool opencl;
 EXPORT extern int opencl_warp_size;
+EXPORT extern int opencl_sparse_matrix_format;
 // sparse bits info
 EXPORT extern int sb_max_mem;
 EXPORT extern int num_sb_levels;

@@ -44,9 +44,10 @@ EXPORT double term_crit_param;
 EXPORT int max_iters;
 // use "compact modified" sparse matrix storage?
 EXPORT bool compact;
-// use OpenCL implementation when possible? Other associated options
+// use OpenCL implementation? Other associated options
 EXPORT bool opencl;
 EXPORT int opencl_warp_size;
+EXPORT int opencl_sparse_matrix_format;
 // sparse bits info
 EXPORT int sb_max_mem;
 EXPORT int num_sb_levels;
@@ -101,6 +102,11 @@ JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetOpenCL(JNIEnv *env, jclass 
 JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetOpenCLWarpSize(JNIEnv *env, jclass cls, jint ws)
 {
 	opencl_warp_size = ws;
+}
+
+JNIEXPORT void JNICALL Java_prism_PrismNative_PN_1SetOpenCLSparseMatrixFormat(JNIEnv *env, jclass cls, jint fmt)
+{
+	opencl_sparse_matrix_format = fmt;
 }
 
 //------------------------------------------------------------------------------

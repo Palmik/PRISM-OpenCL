@@ -15,16 +15,55 @@
 #include "sparse.h"
 #include "jnipointer.h"
 #include "PrismSparseGlob.h"
+#include "PrismNativeGlob.h" // opencl_sparse_matrix_format command line option
 
 #include <CL/cl.h>
 #include "OpenCLUtil.h"
 
 #include "FGOpenCL/Kernel.h"
 #include "FGOpenCL/CoreCS.h"
+#include "FGOpenCL/CoreCS_FW.h"
 
 #define CL_PROF
 
 void FGOpenCL
+  ( JNIEnv* env
+   
+  , MatrixCS matrix
+  , cl_real* fgw_ds // fgw diagonals
+  , cl_real* fgw_ws // fgw weights
+  , cl_uint fgw_l 
+  , cl_uint fgw_r
+
+  , cl_real* soln1 // in
+  , cl_real* soln2 // out
+  , cl_real* sum
+ 
+  , long int time
+  , cl_real unif
+  
+  , long int& num_iters
+
+  , long int start2
+  , long int start3
+  
+  , bool is_cumul_reward 
+  )
+{
+  int fmt = opencl_sparse_matrix_format;
+  std::cerr << fmt << std::endl;
+  if (fmt == CL_SPARSE_MATRIX_FORMAT_CS_FW) {
+    std::cerr << "FMT CS_FW" << std::endl;
+    FGOpenCL_<FGCoreCS_FW>(env, matrix, fgw_ds, fgw_ws, fgw_l, fgw_r, soln1, soln2, sum, time, unif, num_iters, start2, start3, is_cumul_reward);
+  }
+  else { 
+    std::cerr << "FMT CS" << std::endl;
+    FGOpenCL_<FGCoreCS>(env, matrix, fgw_ds, fgw_ws, fgw_l, fgw_r, soln1, soln2, sum, time, unif, num_iters, start2, start3, is_cumul_reward);
+  }
+}
+
+template <typename FGCore>
+void FGOpenCL_
   ( JNIEnv* env
    
   , MatrixCS matrix
@@ -66,7 +105,7 @@ void FGOpenCL
   cl_device_id_m = (gpus_size == 0) ? cpus[0].id : gpus[0].id; // TODO: Report error when both are 0;
 */
 
-  FGKernel<FGCoreCS> kernel
+  FGKernel<FGCore> kernel
     ( cl_device_id_m
     , cl_context_m
 

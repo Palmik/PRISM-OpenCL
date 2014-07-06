@@ -18,6 +18,32 @@ struct MatrixCS
   cl_uint n; // the number of cols (rows)
 };
 
+
+template <typename FGCore>
+void FGOpenCL_
+  ( JNIEnv* env
+   
+  , MatrixCS matrix
+  , cl_real* fgw_ds // fgw diagonals
+  , cl_real* fgw_ws // fgw weights
+  , cl_uint fgw_l 
+  , cl_uint fgw_r
+
+  , cl_real* soln1 // in
+  , cl_real* soln2 // out
+  , cl_real* sum
+ 
+  , long int time
+  , cl_real unif
+  
+  , long int& num_iters
+
+  , long int start2
+  , long int start3
+  
+  , bool is_cumul_reward 
+  );
+
 void FGOpenCL
   ( JNIEnv* env
    

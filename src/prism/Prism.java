@@ -402,6 +402,11 @@ public class Prism extends PrismComponent implements PrismSettingsListener
     settings.set(PrismSettings.PRISM_OPENCL_WARP_SIZE, ws);
   }
 
+  public void setOpenCLSparseMatrixFormat(int fmt) throws PrismException
+  {
+    settings.set(PrismSettings.PRISM_OPENCL_SPARSE_MATRIX_FORMAT, fmt);
+  }
+
 	public void setLinEqMethod(int i) throws PrismException
 	{
 		settings.setChoice(PrismSettings.PRISM_LIN_EQ_METHOD, i);
@@ -790,6 +795,11 @@ public class Prism extends PrismComponent implements PrismSettingsListener
   public int getOpenCLWarpSize()
   {
     return settings.getInteger(PrismSettings.PRISM_OPENCL_WARP_SIZE);
+  }
+	
+  public int getOpenCLSparseMatrixFormat()
+  {
+    return settings.getInteger(PrismSettings.PRISM_OPENCL_SPARSE_MATRIX_FORMAT);
   }
 	
   public long getCUDDMaxMem()
